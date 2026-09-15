@@ -54,8 +54,8 @@ export function HomePage() {
               ou espera. Simples do início ao fim.
             </p>
             <div className={styles.heroActions}>
-              <Link className={styles.primaryAction} to={autenticado ? '/painel' : '/cadastro'}>
-                {autenticado ? 'Ir para meu painel' : 'Quero agendar'}
+              <Link className={styles.primaryAction} to={autenticado ? '/agendar' : '/cadastro'}>
+                {autenticado ? 'Agendar agora' : 'Quero agendar'}
               </Link>
               {!autenticado && <Link className={styles.secondaryAction} to="/entrar">Já tenho conta</Link>}
             </div>
@@ -117,7 +117,9 @@ export function HomePage() {
           <p className={styles.eyebrow}>Sua cadeira está esperando</p>
           <h2>Pronto para cuidar do seu estilo?</h2>
           <p>Crie sua conta gratuitamente e encontre o melhor horário para você.</p>
-          <Link className={styles.primaryAction} to="/cadastro">Criar minha conta</Link>
+          <Link className={styles.primaryAction} to={autenticado ? '/agendar' : '/cadastro'}>
+            {autenticado ? 'Agendar agora' : 'Criar minha conta'}
+          </Link>
         </section>
       </main>
 
