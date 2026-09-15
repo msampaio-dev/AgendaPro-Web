@@ -1,3 +1,4 @@
+import { Link, useLocation } from 'react-router-dom'
 import styles from './HomePage.module.css'
 
 const servicos = [
@@ -22,8 +23,12 @@ function Brand() {
 }
 
 export function HomePage() {
+  const location = useLocation()
+  const loginNome = (location.state as { loginNome?: string } | null)?.loginNome
+
   return (
     <div className={styles.page}>
+      {loginNome && <div className={styles.loginSuccess} role="status">Login realizado. Bem-vindo, {loginNome}!</div>}
       <header className={styles.header}>
         <a href="#inicio" aria-label="AgendaPro, página inicial"><Brand /></a>
         <nav className={styles.nav} aria-label="Navegação principal">
@@ -31,7 +36,10 @@ export function HomePage() {
           <a href="#como-funciona">Como funciona</a>
           <a href="#contato">Contato</a>
         </nav>
-        <a className={styles.headerAction} href="#agendar">Agendar horário</a>
+        <div className={styles.accountActions}>
+          <Link to="/entrar">Entrar</Link>
+          <Link className={styles.headerAction} to="/cadastro">Criar conta</Link>
+        </div>
       </header>
 
       <main>
@@ -44,8 +52,8 @@ export function HomePage() {
               ou espera. Simples do início ao fim.
             </p>
             <div className={styles.heroActions}>
-              <a className={styles.primaryAction} href="#agendar">Quero agendar</a>
-              <a className={styles.secondaryAction} href="#como-funciona">Como funciona</a>
+              <Link className={styles.primaryAction} to="/cadastro">Quero agendar</Link>
+              <Link className={styles.secondaryAction} to="/entrar">Já tenho conta</Link>
             </div>
           </div>
 
@@ -104,8 +112,8 @@ export function HomePage() {
         <section className={styles.cta} id="agendar">
           <p className={styles.eyebrow}>Sua cadeira está esperando</p>
           <h2>Pronto para cuidar do seu estilo?</h2>
-          <p>Na próxima etapa, este botão levará ao cadastro e ao agendamento real.</p>
-          <span className={styles.primaryAction} aria-disabled="true">Agendar em breve</span>
+          <p>Crie sua conta gratuitamente e encontre o melhor horário para você.</p>
+          <Link className={styles.primaryAction} to="/cadastro">Criar minha conta</Link>
         </section>
       </main>
 
