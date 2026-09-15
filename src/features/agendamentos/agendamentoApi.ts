@@ -98,3 +98,45 @@ export function cancelarAgendamento(id: number, token: string) {
     headers: { Authorization: `Bearer ${token}` },
   })
 }
+
+export type FiltrosAgendaProfissional = {
+  dataInicio: string
+  dataFim: string
+  status: StatusAgendamento | ''
+}
+
+export function listarAgendaDoProfissional(
+  profissionalId: number,
+  filtros: FiltrosAgendaProfissional,
+  pagina: number,
+  token: string,
+) {
+  const params = new URLSearchParams({
+    profissionalId: String(profissionalId),
+    page: String(pagina),
+    size: '8',
+    sort: 'inicio,asc',
+  })
+  if (filtros.dataInicio) params.set('dataInicio', filtros.dataInicio)
+  if (filtros.dataFim) params.set('dataFim', filtros.dataFim)
+  if (filtros.status) params.set('status', filtros.status)
+
+  return apiRequest<Pagina<Agendamento>>(`/agendamentos?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+function alterarStatus(id: number, acao: 'confirmar' | 'concluir', token: string) {
+  return apiRequest<Agendamento>(`/agendamentos/${id}/${acao}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+export function confirmarAgendamento(id: number, token: string) {
+  return alterarStatus(id, 'confirmar', token)
+}
+
+export function concluirAgendamento(id: number, token: string) {
+  return alterarStatus(id, 'concluir', token)
+}

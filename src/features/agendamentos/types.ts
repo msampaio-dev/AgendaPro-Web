@@ -40,6 +40,7 @@ export type StatusAgendamento = 'AGENDADO' | 'CONFIRMADO' | 'CANCELADO' | 'CONCL
 export type Agendamento = {
   id: number
   clienteId: number
+  clienteNome: string
   profissionalId: number
   profissionalNome: string
   servicoId: number

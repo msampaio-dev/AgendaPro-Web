@@ -35,4 +35,5 @@ export type SessaoResponse = {
   email: string
   perfis: PerfilUsuario[]
   profissionalId?: number | null
+  fusoHorario?: string | null
 }
