@@ -1,12 +1,12 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../../services/api'
-import { login } from '../authApi'
-import { salvarSessao } from '../authStorage'
+import { useAuth } from '../context/useAuth'
 import styles from './AuthPage.module.css'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { entrar } = useAuth()
   const location = useLocation()
   const cadastroConcluido = Boolean((location.state as { cadastroConcluido?: boolean } | null)?.cadastroConcluido)
   const [email, setEmail] = useState('')
@@ -20,9 +20,9 @@ export function LoginPage() {
     setEnviando(true)
 
     try {
-      const sessao = await login({ email: email.trim(), senha })
-      salvarSessao(sessao)
-      navigate('/', { replace: true, state: { loginNome: sessao.nome } })
+      await entrar({ email: email.trim(), senha })
+      const retorno = (location.state as { retorno?: string } | null)?.retorno
+      navigate(retorno || '/painel', { replace: true })
     } catch (error) {
       setErro(error instanceof ApiError ? error.message : 'Não foi possível entrar.')
     } finally {

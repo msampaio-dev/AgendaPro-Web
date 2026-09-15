@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../../features/auth/context/useAuth'
 import styles from './HomePage.module.css'
 
 const servicos = [
@@ -23,12 +24,10 @@ function Brand() {
 }
 
 export function HomePage() {
-  const location = useLocation()
-  const loginNome = (location.state as { loginNome?: string } | null)?.loginNome
+  const { autenticado, sessao } = useAuth()
 
   return (
     <div className={styles.page}>
-      {loginNome && <div className={styles.loginSuccess} role="status">Login realizado. Bem-vindo, {loginNome}!</div>}
       <header className={styles.header}>
         <a href="#inicio" aria-label="AgendaPro, página inicial"><Brand /></a>
         <nav className={styles.nav} aria-label="Navegação principal">
@@ -37,8 +36,11 @@ export function HomePage() {
           <a href="#contato">Contato</a>
         </nav>
         <div className={styles.accountActions}>
-          <Link to="/entrar">Entrar</Link>
-          <Link className={styles.headerAction} to="/cadastro">Criar conta</Link>
+          {autenticado ? (
+            <><span>Olá, {sessao?.nome.split(' ')[0]}</span><Link className={styles.headerAction} to="/painel">Meu painel</Link></>
+          ) : (
+            <><Link to="/entrar">Entrar</Link><Link className={styles.headerAction} to="/cadastro">Criar conta</Link></>
+          )}
         </div>
       </header>
 
@@ -52,8 +54,10 @@ export function HomePage() {
               ou espera. Simples do início ao fim.
             </p>
             <div className={styles.heroActions}>
-              <Link className={styles.primaryAction} to="/cadastro">Quero agendar</Link>
-              <Link className={styles.secondaryAction} to="/entrar">Já tenho conta</Link>
+              <Link className={styles.primaryAction} to={autenticado ? '/painel' : '/cadastro'}>
+                {autenticado ? 'Ir para meu painel' : 'Quero agendar'}
+              </Link>
+              {!autenticado && <Link className={styles.secondaryAction} to="/entrar">Já tenho conta</Link>}
             </div>
           </div>
 

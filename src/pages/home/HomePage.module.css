@@ -29,14 +29,6 @@
   text-decoration: none;
 }
 
-.loginSuccess {
-  padding: 11px 20px;
-  color: #b8d8b6;
-  background: rgba(128, 179, 125, 0.1);
-  font-size: 0.86rem;
-  text-align: center;
-}
-
 .brand {
   display: inline-flex;
   align-items: center;
@@ -91,6 +83,11 @@
   font-size: 0.85rem;
   font-weight: 700;
   text-decoration: none;
+}
+
+.accountActions > span {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
 }
 
 .headerAction,

@@ -28,3 +28,11 @@ export type LoginResponse = {
   tipo: 'Bearer'
   expiraEm: string
 }
+
+export type SessaoResponse = {
+  id: number
+  nome: string
+  email: string
+  perfis: PerfilUsuario[]
+  profissionalId?: number | null
+}

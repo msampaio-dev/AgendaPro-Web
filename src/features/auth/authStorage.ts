@@ -18,3 +18,7 @@ export function lerSessao(): LoginResponse | null {
     return null
   }
 }
+
+export function removerSessao() {
+  sessionStorage.removeItem(SESSION_KEY)
+}

@@ -3,6 +3,7 @@ import type {
   CadastroUsuarioRequest,
   LoginRequest,
   LoginResponse,
+  SessaoResponse,
   UsuarioResponse,
 } from './types'
 
@@ -17,5 +18,11 @@ export function login(dados: LoginRequest) {
   return apiRequest<LoginResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(dados),
+  })
+}
+
+export function buscarSessao(token: string) {
+  return apiRequest<SessaoResponse>('/auth/me', {
+    headers: { Authorization: `Bearer ${token}` },
   })
 }
