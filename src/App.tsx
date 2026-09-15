@@ -8,6 +8,7 @@ import { PainelPage } from './pages/painel/PainelPage'
 import { NovoAgendamentoPage } from './features/agendamentos/pages/NovoAgendamentoPage'
 import { MeusAgendamentosPage } from './features/agendamentos/pages/MeusAgendamentosPage'
 import { AgendaProfissionalPage } from './features/profissional/pages/AgendaProfissionalPage'
+import { AdminServicosPage } from './features/admin/servicos/AdminServicosPage'
 
 function App() {
   return (
@@ -22,6 +23,9 @@ function App() {
           <Route path="/meus-agendamentos" element={<RotaProtegida><MeusAgendamentosPage /></RotaProtegida>} />
           <Route path="/profissional/agenda" element={
             <RotaProtegida perfis={['PROFISSIONAL']}><AgendaProfissionalPage /></RotaProtegida>
+          } />
+          <Route path="/admin/servicos" element={
+            <RotaProtegida perfis={['ADMIN']}><AdminServicosPage /></RotaProtegida>
           } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
