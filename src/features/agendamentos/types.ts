@@ -41,8 +41,20 @@ export type Agendamento = {
   id: number
   clienteId: number
   profissionalId: number
+  profissionalNome: string
   servicoId: number
+  servicoNome: string
   inicio: string
   fim: string
   status: StatusAgendamento
+}
+
+export type Pagina<T> = {
+  conteudo: T[]
+  pagina: number
+  tamanho: number
+  totalElementos: number
+  totalPaginas: number
+  primeira: boolean
+  ultima: boolean
 }

@@ -6,6 +6,7 @@ import { RotaProtegida } from './features/auth/components/RotaProtegida'
 import { HomePage } from './pages/home/HomePage'
 import { PainelPage } from './pages/painel/PainelPage'
 import { NovoAgendamentoPage } from './features/agendamentos/pages/NovoAgendamentoPage'
+import { MeusAgendamentosPage } from './features/agendamentos/pages/MeusAgendamentosPage'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/cadastro" element={<CadastroPage />} />
           <Route path="/painel" element={<RotaProtegida><PainelPage /></RotaProtegida>} />
           <Route path="/agendar" element={<RotaProtegida><NovoAgendamentoPage /></RotaProtegida>} />
+          <Route path="/meus-agendamentos" element={<RotaProtegida><MeusAgendamentosPage /></RotaProtegida>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

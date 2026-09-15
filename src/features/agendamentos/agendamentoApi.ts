@@ -4,7 +4,9 @@ import type {
   Disponibilidade,
   Profissional,
   ProfissionalServico,
+  Pagina,
   Servico,
+  StatusAgendamento,
 } from './types'
 
 export function listarServicos(token: string) {
@@ -55,5 +57,44 @@ export function criarAgendamento(
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(dados),
+  })
+}
+
+export type FiltrosAgendamento = {
+  dataInicio: string
+  dataFim: string
+  status: StatusAgendamento | ''
+}
+
+function inicioDoDiaEmIso(data: string) {
+  return new Date(`${data}T00:00:00`).toISOString()
+}
+
+function inicioDoDiaSeguinteEmIso(data: string) {
+  const dia = new Date(`${data}T00:00:00`)
+  dia.setDate(dia.getDate() + 1)
+  return dia.toISOString()
+}
+
+export function listarAgendamentosDoCliente(
+  clienteId: number,
+  filtros: FiltrosAgendamento,
+  pagina: number,
+  token: string,
+) {
+  const params = new URLSearchParams({ page: String(pagina), size: '6', sort: 'inicio,desc' })
+  if (filtros.dataInicio) params.set('inicioDe', inicioDoDiaEmIso(filtros.dataInicio))
+  if (filtros.dataFim) params.set('inicioAntesDe', inicioDoDiaSeguinteEmIso(filtros.dataFim))
+  if (filtros.status) params.set('status', filtros.status)
+
+  return apiRequest<Pagina<Agendamento>>(`/agendamentos/cliente/${clienteId}?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+export function cancelarAgendamento(id: number, token: string) {
+  return apiRequest<Agendamento>(`/agendamentos/${id}/cancelar`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
   })
 }

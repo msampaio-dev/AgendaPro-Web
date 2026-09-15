@@ -30,7 +30,7 @@ export function PainelPage() {
         </section>
 
         <section className={styles.actions} aria-label="Áreas disponíveis">
-          <article><span>Cliente</span><h2>Novo agendamento</h2><p>Escolha serviço, profissional, data e um horário realmente disponível.</p><Link to="/agendar">Agendar agora</Link></article>
+          <article><span>Cliente</span><h2>Meus agendamentos</h2><p>Acompanhe seu histórico, filtre e cancele horários.</p><div><Link to="/meus-agendamentos">Ver agenda</Link><Link to="/agendar">Novo horário</Link></div></article>
           {possuiPerfil('PROFISSIONAL') && (
             <article><span>Profissional</span><h2>Minha agenda</h2><p>Consulte seus atendimentos e gerencie sua disponibilidade.</p></article>
           )}
