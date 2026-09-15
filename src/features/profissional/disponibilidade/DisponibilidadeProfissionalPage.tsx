@@ -5,6 +5,7 @@ import { useAuth } from '../../auth/context/useAuth'
 import {
   cadastrarExcecao,
   cadastrarHorario,
+  cadastrarJornadaComIntervalo,
   listarExcecoes,
   listarHorarios,
   removerExcecao,
@@ -38,6 +39,9 @@ export function DisponibilidadeProfissionalPage() {
   const [diaSemana, setDiaSemana] = useState<DiaSemana>('MONDAY')
   const [inicioSemanal, setInicioSemanal] = useState('09:00')
   const [fimSemanal, setFimSemanal] = useState('18:00')
+  const [possuiIntervalo, setPossuiIntervalo] = useState(false)
+  const [inicioIntervalo, setInicioIntervalo] = useState('12:00')
+  const [fimIntervalo, setFimIntervalo] = useState('13:00')
   const [dataExcecao, setDataExcecao] = useState(hojeLocal)
   const [tipoExcecao, setTipoExcecao] = useState<TipoExcecao>('BLOQUEIO')
   const [diaInteiro, setDiaInteiro] = useState(true)
@@ -86,11 +90,33 @@ export function DisponibilidadeProfissionalPage() {
       setErro('O início do horário deve ser anterior ao fim.')
       return
     }
+    if (possuiIntervalo && !jornadaComIntervaloValida(
+      inicioSemanal,
+      inicioIntervalo,
+      fimIntervalo,
+      fimSemanal,
+    )) {
+      setErro('O almoço deve começar e terminar dentro do horário de trabalho.')
+      return
+    }
     iniciarProcessamento()
     try {
-      await cadastrarHorario({ profissionalId, diaSemana, horarioInicio: inicioSemanal, horarioFim: fimSemanal }, token)
+      if (possuiIntervalo) {
+        await cadastrarJornadaComIntervalo({
+          profissionalId,
+          diaSemana,
+          horarioInicio: inicioSemanal,
+          inicioIntervalo,
+          fimIntervalo,
+          horarioFim: fimSemanal,
+        }, token)
+      } else {
+        await cadastrarHorario({ profissionalId, diaSemana, horarioInicio: inicioSemanal, horarioFim: fimSemanal }, token)
+      }
       await recarregarHorarios()
-      setMensagem('Horário semanal adicionado.')
+      setMensagem(possuiIntervalo
+        ? 'Jornada adicionada com intervalo de almoço.'
+        : 'Horário semanal adicionado.')
     } catch (error) {
       setErro(mensagemDoErro(error, 'Não foi possível adicionar o horário.'))
     } finally {
@@ -175,12 +201,15 @@ export function DisponibilidadeProfissionalPage() {
         {mensagem && <div className={styles.success} role="status">{mensagem}</div>}
 
         <section className={styles.block}>
-          <header><div><span>Rotina</span><h2>Horários semanais</h2></div><p>Você pode cadastrar mais de um intervalo por dia, como manhã e tarde.</p></header>
+          <header><div><span>Rotina</span><h2>Horários semanais</h2></div><p>Defina a jornada completa e, se desejar, reserve automaticamente o intervalo de almoço.</p></header>
           <form className={styles.scheduleForm} onSubmit={adicionarHorario}>
             <label>Dia<select onChange={(event) => setDiaSemana(event.target.value as DiaSemana)} value={diaSemana}>{dias.map((dia) => <option key={dia.valor} value={dia.valor}>{dia.nome}</option>)}</select></label>
-            <label>Início<input required type="time" value={inicioSemanal} onChange={(event) => setInicioSemanal(event.target.value)} /></label>
-            <label>Fim<input required type="time" value={fimSemanal} onChange={(event) => setFimSemanal(event.target.value)} /></label>
-            <button disabled={processando} type="submit">Adicionar horário</button>
+            <label>Início do trabalho<input required type="time" value={inicioSemanal} onChange={(event) => setInicioSemanal(event.target.value)} /></label>
+            <label>Fim do trabalho<input required type="time" value={fimSemanal} onChange={(event) => setFimSemanal(event.target.value)} /></label>
+            <label className={styles.lunchToggle}><input checked={possuiIntervalo} type="checkbox" onChange={(event) => setPossuiIntervalo(event.target.checked)} />Reservar almoço</label>
+            {possuiIntervalo && <label>Início do almoço<input required type="time" value={inicioIntervalo} onChange={(event) => setInicioIntervalo(event.target.value)} /></label>}
+            {possuiIntervalo && <label>Fim do almoço<input required type="time" value={fimIntervalo} onChange={(event) => setFimIntervalo(event.target.value)} /></label>}
+            <button disabled={processando} type="submit">Adicionar jornada</button>
           </form>
           {carregandoHorarios ? <p className={styles.feedback}>Carregando horários...</p> : <div className={styles.week}>
             {dias.map((dia) => {
@@ -208,6 +237,23 @@ export function DisponibilidadeProfissionalPage() {
 
 function intervaloValido(inicio: string, fim: string) {
   return Boolean(inicio && fim && inicio < fim)
+}
+
+function jornadaComIntervaloValida(
+  inicio: string,
+  inicioIntervalo: string,
+  fimIntervalo: string,
+  fim: string,
+) {
+  return Boolean(
+    inicio
+    && inicioIntervalo
+    && fimIntervalo
+    && fim
+    && inicio < inicioIntervalo
+    && inicioIntervalo < fimIntervalo
+    && fimIntervalo < fim,
+  )
 }
 
 function hora(valor: string | null) {

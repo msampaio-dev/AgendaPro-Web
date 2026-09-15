@@ -44,6 +44,24 @@ export function cadastrarHorario(
   })
 }
 
+export function cadastrarJornadaComIntervalo(
+  dados: {
+    profissionalId: number
+    diaSemana: DiaSemana
+    horarioInicio: string
+    inicioIntervalo: string
+    fimIntervalo: string
+    horarioFim: string
+  },
+  token: string,
+) {
+  return apiRequest<HorarioAtendimento[]>('/horarios-atendimento/jornada', {
+    method: 'POST',
+    headers: autorizacao(token),
+    body: JSON.stringify(dados),
+  })
+}
+
 export function removerHorario(id: number, token: string) {
   return apiRequest<void>(`/horarios-atendimento/${id}`, {
     method: 'DELETE',
