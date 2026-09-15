@@ -1,32 +1,33 @@
-# React + TypeScript + Vite
+# AgendaPro Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Frontend em React e TypeScript para o sistema AgendaPro. Consome a API Spring Boot pela URL configurada em `VITE_API_URL` ou, por padrão, em `http://localhost:8080/api/v1`.
 
-Currently, two official plugins are available:
+## Executar localmente
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Testes
+
+Os testes de componentes usam Vitest, Testing Library e JSDOM. Eles validam as decisões da interface com respostas controladas da API, sem acessar o banco real.
+
+```bash
+npm run test
+```
+
+Os testes ponta a ponta usam Playwright e executam o fluxo completo de login e agendamento em navegador desktop e celular. A API é simulada dentro do navegador para o teste ser determinístico e não criar registros reais.
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
+Antes de enviar uma alteração, execute toda a verificação:
+
+```bash
+npm run test:all
+```
+
+Esse comando executa lint, testes de componentes, testes ponta a ponta e build de produção.
