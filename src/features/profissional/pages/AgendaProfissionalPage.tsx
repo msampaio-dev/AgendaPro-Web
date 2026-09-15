@@ -102,7 +102,7 @@ export function AgendaProfissionalPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}><Link to="/">AgendaPro</Link><div><Link to="/profissional/agenda">Minha agenda</Link><Link to="/painel">Painel</Link></div></header>
+      <header className={styles.header}><Link to="/">AgendaPro</Link><div><Link to="/profissional/agenda">Minha agenda</Link><Link to="/profissional/disponibilidade">Disponibilidade</Link><Link to="/painel">Painel</Link></div></header>
       <main className={styles.content}>
         <div className={styles.heading}><div><p className={styles.eyebrow}>Área profissional</p><h1>Minha agenda</h1><p>Horários exibidos em {sessao.fusoHorario || 'seu fuso local'}.</p></div></div>
 

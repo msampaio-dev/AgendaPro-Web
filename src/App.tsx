@@ -10,6 +10,7 @@ import { MeusAgendamentosPage } from './features/agendamentos/pages/MeusAgendame
 import { AgendaProfissionalPage } from './features/profissional/pages/AgendaProfissionalPage'
 import { AdminServicosPage } from './features/admin/servicos/AdminServicosPage'
 import { AdminProfissionaisPage } from './features/admin/profissionais/AdminProfissionaisPage'
+import { DisponibilidadeProfissionalPage } from './features/profissional/disponibilidade/DisponibilidadeProfissionalPage'
 
 function App() {
   return (
@@ -24,6 +25,9 @@ function App() {
           <Route path="/meus-agendamentos" element={<RotaProtegida><MeusAgendamentosPage /></RotaProtegida>} />
           <Route path="/profissional/agenda" element={
             <RotaProtegida perfis={['PROFISSIONAL']}><AgendaProfissionalPage /></RotaProtegida>
+          } />
+          <Route path="/profissional/disponibilidade" element={
+            <RotaProtegida perfis={['PROFISSIONAL']}><DisponibilidadeProfissionalPage /></RotaProtegida>
           } />
           <Route path="/admin/servicos" element={
             <RotaProtegida perfis={['ADMIN']}><AdminServicosPage /></RotaProtegida>
