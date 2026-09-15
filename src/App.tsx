@@ -11,6 +11,7 @@ import { AgendaProfissionalPage } from './features/profissional/pages/AgendaProf
 import { AdminServicosPage } from './features/admin/servicos/AdminServicosPage'
 import { AdminProfissionaisPage } from './features/admin/profissionais/AdminProfissionaisPage'
 import { DisponibilidadeProfissionalPage } from './features/profissional/disponibilidade/DisponibilidadeProfissionalPage'
+import { AdminDashboardPage } from './features/admin/dashboard/AdminDashboardPage'
 
 function App() {
   return (
@@ -31,6 +32,9 @@ function App() {
           } />
           <Route path="/admin/servicos" element={
             <RotaProtegida perfis={['ADMIN']}><AdminServicosPage /></RotaProtegida>
+          } />
+          <Route path="/admin" element={
+            <RotaProtegida perfis={['ADMIN']}><AdminDashboardPage /></RotaProtegida>
           } />
           <Route path="/admin/profissionais" element={
             <RotaProtegida perfis={['ADMIN']}><AdminProfissionaisPage /></RotaProtegida>

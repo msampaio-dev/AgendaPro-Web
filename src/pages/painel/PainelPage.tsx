@@ -35,7 +35,7 @@ export function PainelPage() {
             <article><span>Profissional</span><h2>Minha agenda</h2><p>Consulte atendimentos e configure quando você trabalha.</p><div><Link to="/profissional/agenda">Abrir agenda</Link><Link to="/profissional/disponibilidade">Disponibilidade</Link></div></article>
           )}
           {possuiPerfil('ADMIN') && (
-            <article><span>Administração</span><h2>Gerenciar negócio</h2><p>Cadastre serviços, profissionais e associações.</p><div><Link to="/admin/servicos">Serviços</Link><Link to="/admin/profissionais">Profissionais</Link></div></article>
+            <article><span>Administração</span><h2>Gerenciar negócio</h2><p>Acompanhe a operação, a agenda, os serviços e a equipe.</p><div><Link to="/admin">Visão geral</Link><Link to="/admin/profissionais">Equipe</Link></div></article>
           )}
         </section>
       </main>
