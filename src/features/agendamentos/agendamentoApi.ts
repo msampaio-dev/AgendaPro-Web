@@ -43,6 +43,25 @@ export function consultarDisponibilidade(
   })
 }
 
+export function consultarProximasDisponibilidades(
+  profissionalId: number,
+  servicoId: number,
+  dataInicial: string,
+  token: string,
+) {
+  const params = new URLSearchParams({
+    profissionalId: String(profissionalId),
+    servicoId: String(servicoId),
+    dataInicial,
+    quantidade: '5',
+    horizonteDias: '30',
+  })
+
+  return apiRequest<Disponibilidade[]>(`/disponibilidades/proximas?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
 export function criarAgendamento(
   dados: {
     clienteId: number

@@ -32,8 +32,18 @@ export type Disponibilidade = {
   profissionalId: number
   servicoId: number
   data: string
+  situacao: SituacaoDisponibilidade
   horarios: HorarioDisponivel[]
 }
+
+export type SituacaoDisponibilidade =
+  | 'DISPONIVEL'
+  | 'SEM_EXPEDIENTE'
+  | 'DIA_BLOQUEADO'
+  | 'SEM_ENCAIXE'
+  | 'HORARIO_LOCAL_INVALIDO'
+  | 'HORARIOS_ENCERRADOS'
+  | 'HORARIOS_OCUPADOS'
 
 export type StatusAgendamento = 'AGENDADO' | 'CONFIRMADO' | 'CANCELADO' | 'CONCLUIDO'
 

@@ -23,6 +23,15 @@
 .card b, .selectedCard b { color: var(--color-accent-light); font-size: .82rem; }
 .avatar { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--color-accent); border-radius: 50%; color: var(--color-accent-light) !important; font-family: var(--font-display); font-size: 1.1rem !important; }
 .dateRow { display: flex; align-items: end; gap: 14px; }
+.suggestions { display: grid; gap: 14px; margin-bottom: 28px; padding: 20px; border: 1px solid var(--color-border); background: rgba(201, 148, 85, .04); }
+.suggestions > strong { font-family: var(--font-display); font-size: 1.08rem; }
+.suggestions > p, .suggestions > small { margin: 0; color: var(--color-text-muted); }
+.suggestions > small { font-size: .72rem; }
+.suggestionGrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.suggestionGrid button { min-height: 92px; display: grid; gap: 5px; padding: 12px; border: 1px solid rgba(255, 255, 255, .11); color: var(--color-text); background: var(--color-surface); text-align: left; cursor: pointer; }
+.suggestionGrid button:hover, .suggestionGrid .selectedSuggestion { border-color: var(--color-accent); background: rgba(201, 148, 85, .1); }
+.suggestionGrid strong { text-transform: capitalize; }
+.suggestionGrid span, .suggestionGrid small { color: var(--color-text-muted); font-size: .72rem; }
 .dateRow label { display: grid; gap: 8px; color: var(--color-text-muted); font-size: .82rem; }
 .dateRow input { min-height: 50px; padding: 0 14px; border: 1px solid rgba(255, 255, 255, .14); color: var(--color-text); color-scheme: dark; background: var(--color-surface); font: inherit; }
 .dateRow button, .summary button { min-height: 50px; padding: 0 24px; border: 1px solid var(--color-accent); color: #17110b; background: var(--color-accent); font-weight: 700; cursor: pointer; }
@@ -42,5 +51,6 @@
 .successPage > strong { color: var(--color-accent-light); }
 .successPage > div { display: flex; gap: 14px; margin-top: 36px; }
 .successPage a { padding: 13px 20px; border: 1px solid var(--color-accent); color: var(--color-accent-light); text-decoration: none; }
-@media (max-width: 760px) { .cardGrid { grid-template-columns: 1fr; } .card, .selectedCard { min-height: 130px; } .summary { grid-template-columns: 1fr; } .summary button { grid-column: auto; } }
+@media (max-width: 760px) { .cardGrid { grid-template-columns: 1fr; } .card, .selectedCard { min-height: 130px; } .suggestionGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .summary { grid-template-columns: 1fr; } .summary button { grid-column: auto; } }
 @media (max-width: 500px) { .header, .content { width: calc(100% - 28px); } .content { padding-top: 56px; } .dateRow { align-items: stretch; flex-direction: column; } .dateRow input, .dateRow button { width: 100%; } }
+@media (max-width: 360px) { .suggestionGrid { grid-template-columns: 1fr; } }
