@@ -12,6 +12,7 @@ import { AdminServicosPage } from './features/admin/servicos/AdminServicosPage'
 import { AdminProfissionaisPage } from './features/admin/profissionais/AdminProfissionaisPage'
 import { DisponibilidadeProfissionalPage } from './features/profissional/disponibilidade/DisponibilidadeProfissionalPage'
 import { AdminDashboardPage } from './features/admin/dashboard/AdminDashboardPage'
+import { AdminUsuariosPage } from './features/admin/usuarios/AdminUsuariosPage'
 
 function App() {
   return (
@@ -35,6 +36,9 @@ function App() {
           } />
           <Route path="/admin" element={
             <RotaProtegida perfis={['ADMIN']}><AdminDashboardPage /></RotaProtegida>
+          } />
+          <Route path="/admin/usuarios" element={
+            <RotaProtegida perfis={['ADMIN']}><AdminUsuariosPage /></RotaProtegida>
           } />
           <Route path="/admin/profissionais" element={
             <RotaProtegida perfis={['ADMIN']}><AdminProfissionaisPage /></RotaProtegida>

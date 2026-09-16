@@ -146,7 +146,7 @@ export function AdminDashboardPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Link to="/">AgendaPro</Link>
-        <nav><Link aria-current="page" to="/admin">Visão geral</Link><Link to="/admin/servicos">Serviços</Link><Link to="/admin/profissionais">Profissionais</Link><Link to="/painel">Painel</Link></nav>
+        <nav><Link aria-current="page" to="/admin">Visão geral</Link><Link to="/admin/usuarios">Usuários</Link><Link to="/admin/servicos">Serviços</Link><Link to="/admin/profissionais">Profissionais</Link><Link to="/painel">Painel</Link></nav>
       </header>
 
       <main className={styles.content}>
@@ -159,7 +159,7 @@ export function AdminDashboardPage() {
         {mensagem && <div className={styles.success} role="status">{mensagem}</div>}
 
         <section className={styles.metrics} aria-label="Indicadores da operação">
-          <article><span>Usuários ativos</span><strong>{indicadores.usuarios}</strong><Link to="/admin/profissionais">Gerenciar equipe</Link></article>
+          <article><span>Usuários ativos</span><strong>{indicadores.usuarios}</strong><Link to="/admin/usuarios">Gerenciar contas</Link></article>
           <article><span>Profissionais ativos</span><strong>{indicadores.profissionais}</strong><Link to="/admin/profissionais">Ver profissionais</Link></article>
           <article><span>Serviços ativos</span><strong>{indicadores.servicos}</strong><Link to="/admin/servicos">Ver catálogo</Link></article>
           <article><span>No período</span><strong>{indicadores.atendimentos}</strong><small>agendamentos encontrados</small></article>
