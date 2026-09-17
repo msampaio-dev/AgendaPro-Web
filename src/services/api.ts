@@ -27,9 +27,9 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   const headers = new Headers(options.headers)
   headers.set('Accept', 'application/json')
 
-  if (options.body && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json')
-  }
+  if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
+		headers.set('Content-Type', 'application/json')
+	}
 
   let response: Response
 
@@ -51,5 +51,11 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     )
   }
 
-  return body as T
+	return body as T
+}
+
+export function apiAssetUrl(path: string | null | undefined) {
+	if (!path) return null
+	if (/^https?:\/\//i.test(path)) return path
+	return new URL(path, new URL(env.apiUrl, window.location.origin).origin).toString()
 }

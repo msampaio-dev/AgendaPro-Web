@@ -12,8 +12,53 @@ export type Profissional = {
   usuarioId: number
   nome: string
   email: string
+  barbeariaId: number | null
+  barbeariaNome: string | null
   ativo: boolean
   fusoHorario: string
+  fotoUrl?: string | null
+}
+
+export type Barbearia = {
+  id: number
+  nome: string
+  ativo: boolean
+  fotoUrl?: string | null
+  proprietarioProfissionalId?: number | null
+  proprietarioNome?: string | null
+  cep?: string | null
+  logradouro?: string | null
+  numero?: string | null
+  complemento?: string | null
+  bairro?: string | null
+  cidade?: string | null
+  estado?: string | null
+  fusoHorario?: string | null
+}
+
+export type DiaSemana = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY'
+
+export type HorarioFuncionamento = {
+  id: number
+  barbeariaId: number
+  diaSemana: DiaSemana
+  horarioInicio: string
+  horarioFim: string
+}
+
+export type HorarioFuncionamentoInput = Omit<HorarioFuncionamento, 'id' | 'barbeariaId'>
+
+export type DadosBarbearia = {
+  nome: string
+  endereco: {
+    cep: string
+    logradouro: string
+    numero: string
+    complemento: string
+    bairro: string
+    cidade: string
+    estado: string
+  }
 }
 
 export type ProfissionalServico = {
@@ -55,6 +100,8 @@ export type Agendamento = {
   profissionalNome: string
   servicoId: number
   servicoNome: string
+  servicoAdicionalId?: number | null
+  servicoAdicionalNome?: string | null
   inicio: string
   fim: string
   status: StatusAgendamento

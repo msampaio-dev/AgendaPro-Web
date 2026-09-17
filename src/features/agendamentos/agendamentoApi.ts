@@ -1,6 +1,7 @@
 import { apiRequest } from '../../services/api'
 import type {
   Agendamento,
+  Barbearia,
   Disponibilidade,
   Profissional,
   ProfissionalServico,
@@ -11,6 +12,28 @@ import type {
 
 export function listarServicos(token: string) {
   return apiRequest<Servico[]>('/servicos', { headers: { Authorization: `Bearer ${token}` } })
+}
+
+export function listarBarbearias(token: string) {
+  return apiRequest<Barbearia[]>('/barbearias', { headers: { Authorization: `Bearer ${token}` } })
+}
+
+export function listarProfissionaisDaBarbearia(barbeariaId: number, token: string) {
+  return apiRequest<Profissional[]>(`/profissionais?barbeariaId=${barbeariaId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+export async function listarServicosDoProfissional(profissionalId: number, token: string) {
+  const authorization = { Authorization: `Bearer ${token}` }
+  const [servicos, associacoes] = await Promise.all([
+    apiRequest<Servico[]>('/servicos', { headers: authorization }),
+    apiRequest<ProfissionalServico[]>(`/profissionais-servicos?profissionalId=${profissionalId}`, {
+      headers: authorization,
+    }),
+  ])
+  const ids = new Set(associacoes.map((item) => item.servicoId))
+  return servicos.filter((servico) => servico.ativo && ids.has(servico.id))
 }
 
 export async function listarProfissionaisDoServico(servicoId: number, token: string) {
@@ -31,12 +54,14 @@ export function consultarDisponibilidade(
   servicoId: number,
   data: string,
   token: string,
+  servicoAdicionalId?: number | null,
 ) {
   const params = new URLSearchParams({
     profissionalId: String(profissionalId),
     servicoId: String(servicoId),
     data,
   })
+  if (servicoAdicionalId) params.set('servicoAdicionalId', String(servicoAdicionalId))
 
   return apiRequest<Disponibilidade>(`/disponibilidades?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -48,6 +73,7 @@ export function consultarProximasDisponibilidades(
   servicoId: number,
   dataInicial: string,
   token: string,
+  servicoAdicionalId?: number | null,
 ) {
   const params = new URLSearchParams({
     profissionalId: String(profissionalId),
@@ -56,6 +82,7 @@ export function consultarProximasDisponibilidades(
     quantidade: '5',
     horizonteDias: '30',
   })
+  if (servicoAdicionalId) params.set('servicoAdicionalId', String(servicoAdicionalId))
 
   return apiRequest<Disponibilidade[]>(`/disponibilidades/proximas?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -67,6 +94,7 @@ export function criarAgendamento(
     clienteId: number
     profissionalId: number
     servicoId: number
+    servicoAdicionalId?: number | null
     data: string
     horarioInicio: string
   },

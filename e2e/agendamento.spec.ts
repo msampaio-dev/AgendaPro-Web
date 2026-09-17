@@ -24,14 +24,26 @@ test('cliente entra e conclui um agendamento disponível', async ({ page }) => {
     if (url.pathname.endsWith('/auth/me')) {
       return json({ id: 7, nome: 'Cliente Teste', email: 'cliente@teste.com', perfis: ['CLIENTE'] })
     }
-    if (url.pathname.endsWith('/servicos')) {
-      return json([{ id: 3, nome: 'Corte', descricao: null, duracaoMinutos: 30, preco: 50, ativo: true }])
+    if (url.pathname.endsWith('/barbearias')) {
+      return json([{ id: 2, nome: 'Barbershopping Ipanema', ativo: true }])
     }
     if (url.pathname.endsWith('/profissionais')) {
-      return json([{ id: 4, usuarioId: 8, nome: 'Marcelo', email: 'profissional@teste.com', ativo: true, fusoHorario: 'America/Sao_Paulo' }])
+      return json([{ id: 4, usuarioId: 8, nome: 'Marcelo', email: 'profissional@teste.com', barbeariaId: 2, barbeariaNome: 'Barbershopping Ipanema', ativo: true, fusoHorario: 'America/Sao_Paulo' }])
+    }
+    if (url.pathname.endsWith('/servicos')) {
+      return json([
+        { id: 3, nome: 'Corte', descricao: null, duracaoMinutos: 30, preco: 50, ativo: true },
+        { id: 6, nome: 'Barba', descricao: null, duracaoMinutos: 20, preco: 25, ativo: true },
+      ])
     }
     if (url.pathname.endsWith('/profissionais-servicos/por-servico')) {
       return json([{ id: 5, profissionalId: 4, servicoId: 3, ativo: true }])
+    }
+    if (url.pathname.endsWith('/profissionais-servicos')) {
+      return json([
+        { id: 5, profissionalId: 4, servicoId: 3, ativo: true },
+        { id: 6, profissionalId: 4, servicoId: 6, ativo: true },
+      ])
     }
     if (url.pathname.endsWith('/disponibilidades/proximas')) {
       return json([{
@@ -70,15 +82,16 @@ test('cliente entra e conclui um agendamento disponível', async ({ page }) => {
   await expect(page).toHaveURL(/\/painel$/)
 
   await page.getByRole('link', { name: 'Novo horário' }).click()
-  await page.getByRole('button', { name: /Corte/ }).click()
+  await page.getByRole('button', { name: /Barbershopping Ipanema/ }).click()
   await page.getByRole('button', { name: /Marcelo/ }).click()
+  await page.getByRole('button', { name: /Corte/ }).click()
 
   await expect(page.getByLabel('Outra data')).toHaveValue('2030-01-07')
   await expect(page.getByRole('button', { name: '09:00', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: '12:00', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: '09:00', exact: true }).click()
-  await page.getByRole('button', { name: 'Confirmar agendamento' }).click()
+  await page.getByRole('button', { name: /Confirmar/ }).click()
 
   await expect(page.getByRole('heading', { name: 'Seu horário está agendado.' })).toBeVisible()
-  await expect(page.getByText('Corte com Marcelo')).toBeVisible()
+  await expect(page.getByText(/Corte com Marcelo/)).toBeVisible()
 })

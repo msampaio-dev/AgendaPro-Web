@@ -1,308 +1,169 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/context/useAuth'
-import { ApiError } from '../../../services/api'
+import { ApiError, apiAssetUrl } from '../../../services/api'
 import {
   consultarDisponibilidade,
   consultarProximasDisponibilidades,
   criarAgendamento,
-  listarProfissionaisDoServico,
-  listarServicos,
+  listarBarbearias,
+  listarProfissionaisDaBarbearia,
+  listarServicosDoProfissional,
 } from '../agendamentoApi'
-import type { Agendamento, Disponibilidade, HorarioDisponivel, Profissional, Servico, SituacaoDisponibilidade } from '../types'
+import type { Agendamento, Barbearia, Disponibilidade, HorarioDisponivel, Profissional, Servico, SituacaoDisponibilidade } from '../types'
 import styles from './NovoAgendamentoPage.module.css'
 
 function dataLocalAtual() {
   const hoje = new Date()
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0')
-  const dia = String(hoje.getDate()).padStart(2, '0')
-  return `${hoje.getFullYear()}-${mes}-${dia}`
+  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`
 }
 
 function dataAtualNoFuso(fusoHorario: string) {
-  const partes = new Intl.DateTimeFormat('en-CA', {
-    timeZone: fusoHorario,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date())
+  const partes = new Intl.DateTimeFormat('en-CA', { timeZone: fusoHorario, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
   const valor = (tipo: Intl.DateTimeFormatPartTypes) => partes.find((parte) => parte.type === tipo)?.value
   return `${valor('year')}-${valor('month')}-${valor('day')}`
 }
 
-function formatarData(data: string, opcoes?: Intl.DateTimeFormatOptions) {
-  return new Intl.DateTimeFormat('pt-BR', opcoes ?? {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-  }).format(new Date(`${data}T12:00:00`))
-}
-
-const mensagensSemHorario: Record<SituacaoDisponibilidade, string> = {
-  DISPONIVEL: '',
-  SEM_EXPEDIENTE: 'O profissional não atende neste dia.',
-  DIA_BLOQUEADO: 'A agenda está bloqueada nesta data.',
-  SEM_ENCAIXE: 'Os intervalos livres são menores que a duração deste serviço.',
-  HORARIO_LOCAL_INVALIDO: 'Este horário não existe no fuso local devido à mudança do relógio.',
-  HORARIOS_ENCERRADOS: 'Todos os horários deste dia já passaram.',
-  HORARIOS_OCUPADOS: 'Todos os horários deste dia já foram reservados.',
+function formatarData(data: string) {
+  return new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).format(new Date(`${data}T12:00:00`))
 }
 
 function moeda(valor: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
 }
 
+const mensagensSemHorario: Record<SituacaoDisponibilidade, string> = {
+  DISPONIVEL: '', SEM_EXPEDIENTE: 'O profissional não atende neste dia.', DIA_BLOQUEADO: 'A agenda está bloqueada nesta data.',
+  SEM_ENCAIXE: 'Não há intervalo contínuo suficiente para os serviços selecionados.', HORARIO_LOCAL_INVALIDO: 'Este horário não existe no fuso local.',
+  HORARIOS_ENCERRADOS: 'Todos os horários deste dia já passaram.', HORARIOS_OCUPADOS: 'Todos os horários deste dia já foram reservados.',
+}
+
 export function NovoAgendamentoPage() {
   const { sessao, token } = useAuth()
-  const [servicos, setServicos] = useState<Servico[]>([])
+  const [barbearias, setBarbearias] = useState<Barbearia[]>([])
   const [profissionais, setProfissionais] = useState<Profissional[]>([])
+  const [servicos, setServicos] = useState<Servico[]>([])
+  const [barbeariaId, setBarbeariaId] = useState<number | null>(null)
+  const [profissionalId, setProfissionalId] = useState<number | null>(null)
+  const [servicoId, setServicoId] = useState<number | null>(null)
+  const [adicionarBarba, setAdicionarBarba] = useState(false)
+  const [data, setData] = useState('')
   const [horarios, setHorarios] = useState<HorarioDisponivel[]>([])
   const [proximasDatas, setProximasDatas] = useState<Disponibilidade[]>([])
-  const [servicoId, setServicoId] = useState<number | null>(null)
-  const [profissionalId, setProfissionalId] = useState<number | null>(null)
-  const [data, setData] = useState('')
   const [horarioInicio, setHorarioInicio] = useState('')
   const [carregando, setCarregando] = useState(true)
-  const [carregandoProfissionais, setCarregandoProfissionais] = useState(false)
-  const [carregandoProximasDatas, setCarregandoProximasDatas] = useState(false)
-  const [consultando, setConsultando] = useState(false)
+  const [processando, setProcessando] = useState(false)
   const [consultaRealizada, setConsultaRealizada] = useState(false)
   const [situacao, setSituacao] = useState<SituacaoDisponibilidade | null>(null)
-  const [confirmando, setConfirmando] = useState(false)
   const [erro, setErro] = useState('')
   const [agendamento, setAgendamento] = useState<Agendamento | null>(null)
-  const selecaoAtual = useRef(0)
+  const requisicaoAtual = useRef(0)
 
   useEffect(() => {
     if (!token) return
     let ativo = true
-
-    listarServicos(token)
-      .then((resultado) => { if (ativo) setServicos(resultado.filter((servico) => servico.ativo)) })
-      .catch((error) => { if (ativo) setErro(error instanceof ApiError ? error.message : 'Não foi possível carregar os serviços.') })
+    listarBarbearias(token)
+      .then((dados) => { if (ativo) setBarbearias(dados.filter((item) => item.ativo)) })
+      .catch((error) => { if (ativo) setErro(mensagemErro(error, 'Não foi possível carregar as barbearias.')) })
       .finally(() => { if (ativo) setCarregando(false) })
-
     return () => { ativo = false }
   }, [token])
 
-  const servicoSelecionado = useMemo(
-    () => servicos.find((servico) => servico.id === servicoId),
-    [servicoId, servicos],
-  )
-  const profissionalSelecionado = useMemo(
-    () => profissionais.find((profissional) => profissional.id === profissionalId),
-    [profissionalId, profissionais],
-  )
+  const barbearia = barbearias.find((item) => item.id === barbeariaId)
+  const profissional = profissionais.find((item) => item.id === profissionalId)
+  const servico = servicos.find((item) => item.id === servicoId)
+  const servicoBarba = useMemo(() => servicos.find((item) => item.nome.toLocaleLowerCase('pt-BR') === 'barba'), [servicos])
+  const servicosPrincipais = useMemo(() => servicos.filter((item) => item.id !== servicoBarba?.id), [servicos, servicoBarba])
+  const servicoAdicionalId = adicionarBarba ? servicoBarba?.id ?? null : null
+  const duracaoTotal = (servico?.duracaoMinutos ?? 0) + (adicionarBarba ? servicoBarba?.duracaoMinutos ?? 0 : 0)
+  const precoTotal = (servico?.preco ?? 0) + (adicionarBarba ? servicoBarba?.preco ?? 0 : 0)
 
-  async function selecionarServico(id: number) {
-    if (!token) return
-    setServicoId(id)
-    setProfissionalId(null)
-    setData('')
-    setHorarios([])
-    setProximasDatas([])
-    setHorarioInicio('')
-    setConsultaRealizada(false)
-    setSituacao(null)
-    setErro('')
-    setConsultando(false)
-    setCarregandoProximasDatas(false)
-    selecaoAtual.current += 1
-    setCarregandoProfissionais(true)
-
-    try {
-      setProfissionais(await listarProfissionaisDoServico(id, token))
-    } catch (error) {
-      setProfissionais([])
-      setErro(error instanceof ApiError ? error.message : 'Não foi possível carregar os profissionais.')
-    } finally {
-      setCarregandoProfissionais(false)
-    }
+  function limparAgenda() {
+    setData(''); setHorarios([]); setProximasDatas([]); setHorarioInicio(''); setSituacao(null); setConsultaRealizada(false)
+    requisicaoAtual.current += 1
   }
 
-  async function consultarData(dataSelecionada: string) {
-    if (!token || !servicoId || !profissionalId || !dataSelecionada) return
-    const requisicao = selecaoAtual.current + 1
-    selecaoAtual.current = requisicao
-    setData(dataSelecionada)
-    setErro('')
-    setHorarioInicio('')
-    setConsultaRealizada(false)
-    setConsultando(true)
-
-    try {
-      const disponibilidade = await consultarDisponibilidade(profissionalId, servicoId, dataSelecionada, token)
-      if (requisicao !== selecaoAtual.current) return
-      setHorarios(disponibilidade.horarios)
-      setSituacao(disponibilidade.situacao)
-      setConsultaRealizada(true)
-    } catch (error) {
-      if (requisicao !== selecaoAtual.current) return
-      setHorarios([])
-      setSituacao(null)
-      setConsultaRealizada(true)
-      setErro(error instanceof ApiError ? error.message : 'Não foi possível consultar os horários.')
-    } finally {
-      if (requisicao === selecaoAtual.current) setConsultando(false)
-    }
+  async function selecionarBarbearia(id: number) {
+    if (!token) return
+    setBarbeariaId(id); setProfissionalId(null); setServicoId(null); setAdicionarBarba(false); setServicos([]); limparAgenda(); setErro(''); setProcessando(true)
+    try { setProfissionais((await listarProfissionaisDaBarbearia(id, token)).filter((item) => item.ativo)) }
+    catch (error) { setProfissionais([]); setErro(mensagemErro(error, 'Não foi possível carregar os profissionais.')) }
+    finally { setProcessando(false) }
   }
 
   async function selecionarProfissional(id: number) {
-    if (!token || !servicoId) return
-    const requisicao = selecaoAtual.current + 1
-    selecaoAtual.current = requisicao
-    const profissional = profissionais.find((item) => item.id === id)
-    const hoje = profissional ? dataAtualNoFuso(profissional.fusoHorario) : dataLocalAtual()
+    if (!token) return
+    setProfissionalId(id); setServicoId(null); setAdicionarBarba(false); limparAgenda(); setErro(''); setProcessando(true)
+    try { setServicos(await listarServicosDoProfissional(id, token)) }
+    catch (error) { setServicos([]); setErro(mensagemErro(error, 'Não foi possível carregar os serviços.')) }
+    finally { setProcessando(false) }
+  }
 
-    setProfissionalId(id)
-    setData('')
-    setHorarios([])
-    setProximasDatas([])
-    setHorarioInicio('')
-    setSituacao(null)
-    setConsultaRealizada(false)
-    setErro('')
-    setCarregandoProximasDatas(true)
-
+  async function buscarProximasDatas(idServico: number, comBarba: boolean) {
+    if (!token || !profissionalId) return
+    const atual = profissionais.find((item) => item.id === profissionalId)
+    const hoje = atual ? dataAtualNoFuso(atual.fusoHorario) : dataLocalAtual()
+    const adicionalId = comBarba ? servicoBarba?.id ?? null : null
+    limparAgenda()
+    const requisicao = ++requisicaoAtual.current
+    setProcessando(true); setErro('')
     try {
-      const resultado = await consultarProximasDisponibilidades(id, servicoId, hoje, token)
-      if (requisicao !== selecaoAtual.current) return
+      const resultado = await consultarProximasDisponibilidades(profissionalId, idServico, hoje, token, adicionalId)
+      if (requisicao !== requisicaoAtual.current) return
       setProximasDatas(resultado)
-      if (resultado.length > 0) {
-        const primeiraData = resultado[0]
-        setData(primeiraData.data)
-        setHorarios(primeiraData.horarios)
-        setSituacao(primeiraData.situacao)
-        setConsultaRealizada(true)
-      }
-    } catch (error) {
-      if (requisicao !== selecaoAtual.current) return
-      setErro(error instanceof ApiError ? error.message : 'Não foi possível consultar as próximas datas.')
-    } finally {
-      if (requisicao === selecaoAtual.current) setCarregandoProximasDatas(false)
-    }
+      if (resultado[0]) { setData(resultado[0].data); setHorarios(resultado[0].horarios); setSituacao(resultado[0].situacao); setConsultaRealizada(true) }
+    } catch (error) { if (requisicao === requisicaoAtual.current) setErro(mensagemErro(error, 'Não foi possível consultar as próximas datas.')) }
+    finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
+  }
+
+  function selecionarServico(id: number) {
+    setServicoId(id); setAdicionarBarba(false); void buscarProximasDatas(id, false)
+  }
+
+  function alternarBarba(marcado: boolean) {
+    setAdicionarBarba(marcado)
+    if (servicoId) void buscarProximasDatas(servicoId, marcado)
+  }
+
+  async function consultarData(novaData: string) {
+    if (!token || !profissionalId || !servicoId || !novaData) return
+    const requisicao = ++requisicaoAtual.current
+    setData(novaData); setHorarioInicio(''); setProcessando(true); setErro('')
+    try {
+      const resposta = await consultarDisponibilidade(profissionalId, servicoId, novaData, token, servicoAdicionalId)
+      if (requisicao !== requisicaoAtual.current) return
+      setHorarios(resposta.horarios); setSituacao(resposta.situacao); setConsultaRealizada(true)
+    } catch (error) { if (requisicao === requisicaoAtual.current) setErro(mensagemErro(error, 'Não foi possível consultar os horários.')) }
+    finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
   async function confirmar() {
-    if (!token || !sessao || !servicoId || !profissionalId || !data || !horarioInicio) return
-    setErro('')
-    setConfirmando(true)
-
-    try {
-      setAgendamento(await criarAgendamento({
-        clienteId: sessao.id,
-        profissionalId,
-        servicoId,
-        data,
-        horarioInicio,
-      }, token))
-    } catch (error) {
-      setErro(error instanceof ApiError ? error.message : 'Não foi possível confirmar o agendamento.')
-    } finally {
-      setConfirmando(false)
-    }
+    if (!token || !sessao || !profissionalId || !servicoId || !data || !horarioInicio) return
+    setProcessando(true); setErro('')
+    try { setAgendamento(await criarAgendamento({ clienteId: sessao.id, profissionalId, servicoId, servicoAdicionalId, data, horarioInicio }, token)) }
+    catch (error) { setErro(mensagemErro(error, 'Não foi possível confirmar o agendamento.')) }
+    finally { setProcessando(false) }
   }
 
-  if (agendamento) {
-    const inicio = new Date(agendamento.inicio)
-    return (
-      <main className={styles.successPage}>
-        <span className={styles.successMark} aria-hidden="true">✓</span>
-        <p className={styles.eyebrow}>Reserva confirmada</p>
-        <h1>Seu horário está agendado.</h1>
-        <p>{servicoSelecionado?.nome} com {profissionalSelecionado?.nome}</p>
-        <strong>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeStyle: 'short', timeZone: profissionalSelecionado?.fusoHorario }).format(inicio)}</strong>
-        <div><Link to="/painel">Voltar ao painel</Link><Link to="/">Página inicial</Link></div>
-      </main>
-    )
-  }
+  if (agendamento) return <main className={styles.successPage}><span className={styles.successMark}>✓</span><p className={styles.eyebrow}>Reserva confirmada</p><h1>Seu horário está agendado.</h1><p>{servico?.nome}{adicionarBarba ? ' + Barba' : ''} com {profissional?.nome} na {barbearia?.nome}</p><strong>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeStyle: 'short', timeZone: profissional?.fusoHorario }).format(new Date(agendamento.inicio))}</strong><div><Link to="/painel">Voltar ao painel</Link><Link to="/">Página inicial</Link></div></main>
 
-  return (
-    <div className={styles.page}>
-      <header className={styles.header}><Link to="/">AgendaPro</Link><Link to="/painel">Voltar ao painel</Link></header>
-      <main className={styles.content}>
-        <p className={styles.eyebrow}>Novo agendamento</p>
-        <h1>Escolha seu próximo horário.</h1>
-        <p className={styles.subtitle}>Você só poderá avançar com opções realmente disponíveis na agenda.</p>
-        {erro && <div className={styles.error} role="alert">{erro}</div>}
+  return <div className={styles.page}><header className={styles.header}><Link to="/">AgendaPro</Link><Link to="/painel">Voltar ao painel</Link></header><main className={styles.content}>
+    <p className={styles.eyebrow}>Novo agendamento</p><h1>Escolha onde e como cuidar do seu estilo.</h1><p className={styles.subtitle}>Os horários exibidos consideram todos os serviços escolhidos.</p>{erro && <div className={styles.error} role="alert">{erro}</div>}
 
-        <section className={styles.step}>
-          <div className={styles.stepTitle}><span>01</span><div><h2>Serviço</h2><p>O que você deseja fazer?</p></div></div>
-          {carregando ? <p>Carregando serviços...</p> : (
-            <div className={styles.cardGrid}>
-              {servicos.map((servico) => (
-                <button aria-pressed={servicoId === servico.id}
-                  className={servicoId === servico.id ? styles.selectedCard : styles.card}
-                  disabled={carregandoProfissionais} key={servico.id}
-                  onClick={() => selecionarServico(servico.id)} type="button">
-                  <strong>{servico.nome}</strong><span>{servico.duracaoMinutos} min</span><b>{moeda(servico.preco)}</b>
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
+    <Etapa numero="01" titulo="Barbearia" descricao="Em qual unidade você deseja ser atendido?">{carregando ? <p>Carregando barbearias...</p> : <div className={styles.cardGrid}>{barbearias.map((item) => <button aria-pressed={barbeariaId === item.id} className={barbeariaId === item.id ? styles.selectedCard : styles.card} key={item.id} onClick={() => selecionarBarbearia(item.id)} type="button"><span className={styles.avatar}>{item.fotoUrl ? <img alt="" src={apiAssetUrl(item.fotoUrl) ?? ''} /> : item.nome.charAt(0)}</span><strong>{item.nome}</strong><span>Ver equipe</span></button>)}</div>}</Etapa>
 
-        {servicoId && <section className={styles.step}>
-          <div className={styles.stepTitle}><span>02</span><div><h2>Profissional</h2><p>Quem cuidará de você?</p></div></div>
-          {carregandoProfissionais ? <p>Carregando profissionais...</p> : profissionais.length === 0 ? (
-            <p className={styles.empty}>Nenhum profissional ativo oferece este serviço.</p>
-          ) : (
-            <div className={styles.cardGrid}>
-              {profissionais.map((profissional) => (
-                <button aria-pressed={profissionalId === profissional.id}
-                  className={profissionalId === profissional.id ? styles.selectedCard : styles.card}
-                  key={profissional.id} onClick={() => selecionarProfissional(profissional.id)} type="button">
-                  <span className={styles.avatar}>{profissional.nome.charAt(0)}</span>
-                  <strong>{profissional.nome}</strong><span>{profissional.fusoHorario.replace('_', ' ')}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </section>}
+    {barbeariaId && <Etapa numero="02" titulo="Profissional" descricao={`Escolha a equipe da ${barbearia?.nome}.`}>{processando ? <p>Carregando profissionais...</p> : profissionais.length === 0 ? <p className={styles.empty}>Nenhum profissional ativo nesta barbearia.</p> : <div className={styles.cardGrid}>{profissionais.map((item) => <button aria-pressed={profissionalId === item.id} className={profissionalId === item.id ? styles.selectedCard : styles.card} key={item.id} onClick={() => selecionarProfissional(item.id)} type="button"><span className={styles.avatar}>{item.fotoUrl ? <img alt="" src={apiAssetUrl(item.fotoUrl) ?? ''} /> : item.nome.charAt(0)}</span><strong>{item.nome}</strong><span>{item.barbeariaNome}</span></button>)}</div>}</Etapa>}
 
-        {profissionalId && <section className={styles.step}>
-          <div className={styles.stepTitle}><span>03</span><div><h2>Data e horário</h2><p>Consulte a agenda em tempo real.</p></div></div>
-          <div className={styles.suggestions} aria-live="polite">
-            <strong>Próximas datas disponíveis</strong>
-            {carregandoProximasDatas ? <p>Procurando horários nos próximos 30 dias...</p> : proximasDatas.length === 0 ? (
-              <p>Nenhum horário livre nos próximos 30 dias. O profissional pode estar sem jornada configurada ou com a agenda totalmente ocupada.</p>
-            ) : (
-              <div className={styles.suggestionGrid}>
-                {proximasDatas.map((disponibilidade) => (
-                  <button className={data === disponibilidade.data ? styles.selectedSuggestion : ''}
-                    key={disponibilidade.data} onClick={() => consultarData(disponibilidade.data)} type="button">
-                    <strong>{formatarData(disponibilidade.data)}</strong>
-                    <span>{disponibilidade.horarios.length} {disponibilidade.horarios.length === 1 ? 'horário' : 'horários'}</span>
-                    <small>{disponibilidade.horarios[0].inicio.slice(0, 5)}–{disponibilidade.horarios.at(-1)?.inicio.slice(0, 5)}</small>
-                  </button>
-                ))}
-              </div>
-            )}
-            <small>As sugestões consideram expediente, almoço, bloqueios, duração do serviço e reservas existentes.</small>
-          </div>
-          <div className={styles.dateRow}>
-            <label>Outra data<input min={profissionalSelecionado ? dataAtualNoFuso(profissionalSelecionado.fusoHorario) : dataLocalAtual()} onChange={(event) => consultarData(event.target.value)} type="date" value={data} /></label>
-            <button disabled={!data || consultando} onClick={() => consultarData(data)} type="button">{consultando ? 'Consultando...' : 'Atualizar horários'}</button>
-          </div>
-          {consultaRealizada && !consultando && horarios.length === 0 && situacao && <p className={styles.empty}>{mensagensSemHorario[situacao]}</p>}
-          {horarios.length > 0 && <div className={styles.slots}>
-            {horarios.map((horario) => (
-              <button aria-pressed={horarioInicio === horario.inicio}
-                className={horarioInicio === horario.inicio ? styles.selectedSlot : ''}
-                key={horario.inicio} onClick={() => setHorarioInicio(horario.inicio)} type="button">
-                {horario.inicio.slice(0, 5)}
-              </button>
-            ))}
-          </div>}
-        </section>}
+    {profissionalId && <Etapa numero="03" titulo="Serviços" descricao="Escolha o corte e, se quiser, adicione barba.">{processando && servicos.length === 0 ? <p>Carregando serviços...</p> : <><div className={styles.cardGrid}>{servicosPrincipais.map((item) => <button aria-pressed={servicoId === item.id} className={servicoId === item.id ? styles.selectedCard : styles.card} key={item.id} onClick={() => selecionarServico(item.id)} type="button"><strong>{item.nome}</strong><span>{item.duracaoMinutos} min</span><b>{moeda(item.preco)}</b></button>)}</div>{servicoId && servicoBarba && <label className={styles.addon}><input checked={adicionarBarba} onChange={(event) => alternarBarba(event.target.checked)} type="checkbox" /><span><strong>Adicionar barba</strong><small>+ {servicoBarba.duracaoMinutos} min · {moeda(servicoBarba.preco)}</small></span></label>}</>}</Etapa>}
 
-        {horarioInicio && <section className={styles.summary}>
-          <div><span>Serviço</span><strong>{servicoSelecionado?.nome}</strong></div>
-          <div><span>Profissional</span><strong>{profissionalSelecionado?.nome}</strong></div>
-          <div><span>Quando</span><strong>{data.split('-').reverse().join('/')} às {horarioInicio.slice(0, 5)}</strong></div>
-          <button disabled={confirmando} onClick={confirmar} type="button">{confirmando ? 'Confirmando...' : 'Confirmar agendamento'}</button>
-        </section>}
-      </main>
-    </div>
-  )
+    {servicoId && <Etapa numero="04" titulo="Data e horário" descricao={`${duracaoTotal} min · ${moeda(precoTotal)}`}><div className={styles.suggestions}><strong>Próximas datas disponíveis</strong>{processando ? <p>Procurando horários...</p> : proximasDatas.length === 0 ? <p>Nenhum horário livre nos próximos 30 dias.</p> : <div className={styles.suggestionGrid}>{proximasDatas.map((item) => <button className={data === item.data ? styles.selectedSuggestion : ''} key={item.data} onClick={() => consultarData(item.data)} type="button"><strong>{formatarData(item.data)}</strong><span>{item.horarios.length} horários</span><small>{item.horarios[0].inicio.slice(0, 5)}–{item.horarios.at(-1)?.inicio.slice(0, 5)}</small></button>)}</div>}</div><div className={styles.dateRow}><label>Outra data<input min={profissional ? dataAtualNoFuso(profissional.fusoHorario) : dataLocalAtual()} onChange={(event) => consultarData(event.target.value)} type="date" value={data} /></label><button disabled={!data || processando} onClick={() => consultarData(data)} type="button">Atualizar horários</button></div>{consultaRealizada && !processando && horarios.length === 0 && situacao && <p className={styles.empty}>{mensagensSemHorario[situacao]}</p>}{horarios.length > 0 && <div className={styles.slots}>{horarios.map((item) => <button aria-pressed={horarioInicio === item.inicio} className={horarioInicio === item.inicio ? styles.selectedSlot : ''} key={item.inicio} onClick={() => setHorarioInicio(item.inicio)} type="button">{item.inicio.slice(0, 5)}</button>)}</div>}</Etapa>}
+
+    {horarioInicio && <section className={styles.summary}><div><span>Barbearia</span><strong>{barbearia?.nome}</strong></div><div><span>Profissional</span><strong>{profissional?.nome}</strong></div><div><span>Serviços</span><strong>{servico?.nome}{adicionarBarba ? ' + Barba' : ''}</strong></div><div><span>Quando</span><strong>{data.split('-').reverse().join('/')} às {horarioInicio.slice(0, 5)}</strong></div><button disabled={processando} onClick={confirmar} type="button">{processando ? 'Confirmando...' : `Confirmar · ${moeda(precoTotal)}`}</button></section>}
+  </main></div>
 }
+
+function Etapa({ numero, titulo, descricao, children }: { numero: string; titulo: string; descricao: string; children: ReactNode }) {
+  return <section className={styles.step}><div className={styles.stepTitle}><span>{numero}</span><div><h2>{titulo}</h2><p>{descricao}</p></div></div>{children}</section>
+}
+
+function mensagemErro(error: unknown, fallback: string) { return error instanceof ApiError ? error.message : fallback }

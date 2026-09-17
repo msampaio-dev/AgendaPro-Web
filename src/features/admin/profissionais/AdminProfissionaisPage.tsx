@@ -1,16 +1,19 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ApiError } from '../../../services/api'
-import type { Profissional, ProfissionalServico, Servico } from '../../agendamentos/types'
+import { ApiError, apiAssetUrl } from '../../../services/api'
+import type { Barbearia, Profissional, ProfissionalServico, Servico } from '../../agendamentos/types'
 import type { UsuarioResponse } from '../../auth/types'
 import { useAuth } from '../../auth/context/useAuth'
 import {
   associarServico,
+  atualizarFotoProfissional,
   cadastrarProfissional,
   carregarDadosAdministrativos,
   desativarProfissional,
   listarAssociacoes,
   removerAssociacao,
+  removerFotoProfissional,
+  transferirProfissional,
 } from './adminProfissionalApi'
 import styles from './AdminProfissionaisPage.module.css'
 
@@ -19,9 +22,13 @@ export function AdminProfissionaisPage() {
   const [usuarios, setUsuarios] = useState<UsuarioResponse[]>([])
   const [profissionais, setProfissionais] = useState<Profissional[]>([])
   const [servicos, setServicos] = useState<Servico[]>([])
+  const [barbearias, setBarbearias] = useState<Barbearia[]>([])
   const [usuarioId, setUsuarioId] = useState('')
+  const [barbeariaId, setBarbeariaId] = useState('')
   const [profissionalId, setProfissionalId] = useState<number | null>(null)
   const [servicoId, setServicoId] = useState('')
+  const [foto, setFoto] = useState<File | null>(null)
+  const [barbeariaDestinoId, setBarbeariaDestinoId] = useState('')
   const [associacoes, setAssociacoes] = useState<ProfissionalServico[]>([])
   const [carregando, setCarregando] = useState(true)
   const [carregandoAssociacoes, setCarregandoAssociacoes] = useState(false)
@@ -38,6 +45,7 @@ export function AdminProfissionaisPage() {
         setUsuarios(dados.usuarios)
         setProfissionais(dados.profissionais)
         setServicos(dados.servicos)
+        setBarbearias(dados.barbearias.filter((item) => item.ativo))
         const primeiroProfissionalId = dados.profissionais.find((item) => item.ativo)?.id ?? null
         setCarregandoAssociacoes(Boolean(primeiroProfissionalId))
         setProfissionalId(primeiroProfissionalId)
@@ -63,6 +71,7 @@ export function AdminProfissionaisPage() {
     setUsuarios(dados.usuarios)
     setProfissionais(dados.profissionais)
     setServicos(dados.servicos)
+    setBarbearias(dados.barbearias.filter((item) => item.ativo))
   }
 
   async function recarregarAssociacoes(id: number) {
@@ -72,13 +81,14 @@ export function AdminProfissionaisPage() {
 
   async function criarPerfil(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!token || !usuarioId) return
+    if (!token || !usuarioId || !barbeariaId) return
     setProcessando(true)
     limparAvisos()
     try {
-      const criado = await cadastrarProfissional(Number(usuarioId), token)
+      const criado = await cadastrarProfissional(Number(usuarioId), Number(barbeariaId), token)
       await recarregarDados()
       setUsuarioId('')
+      setBarbeariaId('')
       setAssociacoes([])
       setCarregandoAssociacoes(true)
       setProfissionalId(criado.id)
@@ -127,6 +137,54 @@ export function AdminProfissionaisPage() {
     }
   }
 
+  async function salvarFoto() {
+    if (!token || !profissionalId || !foto) return
+    setProcessando(true)
+    limparAvisos()
+    try {
+      await atualizarFotoProfissional(profissionalId, foto, token)
+      await recarregarDados()
+      setFoto(null)
+      setMensagem('Foto do profissional atualizada.')
+    } catch (error) {
+      setErro(mensagemDoErro(error, 'Não foi possível atualizar a foto.'))
+    } finally {
+      setProcessando(false)
+    }
+  }
+
+  async function removerFoto() {
+    if (!token || !profissionalId || !window.confirm('Remover a foto deste profissional?')) return
+    setProcessando(true)
+    limparAvisos()
+    try {
+      await removerFotoProfissional(profissionalId, token)
+      await recarregarDados()
+      setFoto(null)
+      setMensagem('Foto do profissional removida.')
+    } catch (error) {
+      setErro(mensagemDoErro(error, 'Não foi possível remover a foto.'))
+    } finally {
+      setProcessando(false)
+    }
+  }
+
+  async function transferir() {
+    if (!token || !profissionalId || !barbeariaDestinoId) return
+    setProcessando(true)
+    limparAvisos()
+    try {
+      await transferirProfissional(profissionalId, Number(barbeariaDestinoId), token)
+      await recarregarDados()
+      setBarbeariaDestinoId('')
+      setMensagem('Profissional transferido para a nova barbearia.')
+    } catch (error) {
+      setErro(mensagemDoErro(error, 'Não foi possível transferir o profissional.'))
+    } finally {
+      setProcessando(false)
+    }
+  }
+
   async function remover(associacao: ProfissionalServico, servico: Servico | undefined) {
     if (!token || !profissionalId || !window.confirm(`Remover “${servico?.nome ?? 'este serviço'}” deste profissional?`)) return
     setProcessando(true)
@@ -157,7 +215,7 @@ export function AdminProfissionaisPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Link to="/">AgendaPro</Link>
-        <nav><Link to="/admin">Visão geral</Link><Link to="/admin/usuarios">Usuários</Link><Link to="/admin/servicos">Serviços</Link><Link to="/admin/profissionais">Profissionais</Link><Link to="/painel">Painel</Link></nav>
+        <nav><Link to="/admin">Visão geral</Link><Link to="/admin/barbearias">Barbearias</Link><Link to="/admin/usuarios">Usuários</Link><Link to="/admin/servicos">Serviços</Link><Link to="/admin/profissionais">Profissionais</Link><Link to="/painel">Painel</Link></nav>
       </header>
 
       <main className={styles.content}>
@@ -172,7 +230,11 @@ export function AdminProfissionaisPage() {
               <option value="">Selecione um usuário</option>
               {usuariosElegiveis.map((usuario) => <option key={usuario.id} value={usuario.id}>{usuario.nome} · {usuario.email}</option>)}
             </select>
-            <button disabled={processando || !usuarioId} type="submit">Criar perfil</button>
+            <select aria-label="Barbearia" disabled={processando || barbearias.length === 0} onChange={(event) => setBarbeariaId(event.target.value)} required value={barbeariaId}>
+              <option value="">Selecione uma barbearia</option>
+              {barbearias.map((barbearia) => <option key={barbearia.id} value={barbearia.id}>{barbearia.nome}</option>)}
+            </select>
+            <button disabled={processando || !usuarioId || !barbeariaId} type="submit">Criar perfil</button>
           </form>
         </section>
 
@@ -189,8 +251,9 @@ export function AdminProfissionaisPage() {
                   }
                   limparAvisos()
                 }} type="button">
+                  <span className={styles.avatar}>{profissional.fotoUrl ? <img alt="" src={apiAssetUrl(profissional.fotoUrl) ?? ''} /> : profissional.nome.charAt(0)}</span>
                   <span className={profissional.ativo ? styles.active : styles.inactive}>{profissional.ativo ? 'Ativo' : 'Inativo'}</span>
-                  <strong>{profissional.nome}</strong><small>{profissional.email}</small>
+                  <strong>{profissional.nome}</strong><small>{profissional.barbeariaNome ?? 'Sem barbearia'} · {profissional.email}</small>
                 </button>
               ))}
             </aside>
@@ -198,7 +261,9 @@ export function AdminProfissionaisPage() {
             <section className={styles.assignment}>
               {!profissionalSelecionado ? <div className={styles.empty}><span>Serviços</span><h2>Selecione um profissional</h2><p>Escolha alguém da equipe para administrar seus serviços.</p></div> : (
                 <>
-                  <header className={styles.profileHeader}><div><span>Perfil #{profissionalSelecionado.id}</span><h2>{profissionalSelecionado.nome}</h2><p>{profissionalSelecionado.fusoHorario}</p></div>{profissionalSelecionado.ativo && <button disabled={processando} onClick={() => desativar(profissionalSelecionado)} type="button">Desativar perfil</button>}</header>
+                  <header className={styles.profileHeader}><span className={styles.profilePhoto}>{profissionalSelecionado.fotoUrl ? <img alt={`Foto de ${profissionalSelecionado.nome}`} src={apiAssetUrl(profissionalSelecionado.fotoUrl) ?? ''} /> : profissionalSelecionado.nome.charAt(0)}</span><div><span>Perfil #{profissionalSelecionado.id}</span><h2>{profissionalSelecionado.nome}</h2><p>{profissionalSelecionado.barbeariaNome ?? 'Sem barbearia'} · {profissionalSelecionado.fusoHorario}</p></div>{profissionalSelecionado.ativo && <button disabled={processando} onClick={() => desativar(profissionalSelecionado)} type="button">Desativar perfil</button>}</header>
+                  <div className={styles.photoEditor}><label>Foto do profissional<input accept="image/jpeg,image/png" onChange={(event) => setFoto(event.target.files?.[0] ?? null)} type="file" /></label><button disabled={processando || !foto} onClick={salvarFoto} type="button">Enviar foto</button>{profissionalSelecionado.fotoUrl && <button className={styles.removePhoto} disabled={processando} onClick={removerFoto} type="button">Remover foto</button>}<small>JPEG ou PNG, até 5 MB.</small></div>
+                  <div className={styles.transferEditor}><label>Transferir para<select aria-label="Barbearia de destino" onChange={(event) => setBarbeariaDestinoId(event.target.value)} value={barbeariaDestinoId}><option value="">Selecione outra unidade</option>{barbearias.filter((item) => item.id !== profissionalSelecionado.barbeariaId).map((item) => <option key={item.id} value={item.id}>{item.nome}</option>)}</select></label><button disabled={processando || !barbeariaDestinoId} onClick={transferir} type="button">Transferir profissional</button><small>A transferência é bloqueada se houver agendamentos futuros ou jornada incompatível.</small></div>
                   {!profissionalSelecionado.ativo ? <p className={styles.feedback}>Este perfil está inativo e não pode receber novos serviços.</p> : (
                     <>
                       <form className={styles.assignForm} onSubmit={adicionarServico}>

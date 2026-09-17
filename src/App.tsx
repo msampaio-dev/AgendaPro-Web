@@ -13,6 +13,8 @@ import { AdminProfissionaisPage } from './features/admin/profissionais/AdminProf
 import { DisponibilidadeProfissionalPage } from './features/profissional/disponibilidade/DisponibilidadeProfissionalPage'
 import { AdminDashboardPage } from './features/admin/dashboard/AdminDashboardPage'
 import { AdminUsuariosPage } from './features/admin/usuarios/AdminUsuariosPage'
+import { AdminBarbeariasPage } from './features/admin/barbearias/AdminBarbeariasPage'
+import { MinhaBarbeariaPage } from './features/profissional/barbearia/MinhaBarbeariaPage'
 
 function App() {
   return (
@@ -28,9 +30,12 @@ function App() {
           <Route path="/profissional/agenda" element={
             <RotaProtegida perfis={['PROFISSIONAL']}><AgendaProfissionalPage /></RotaProtegida>
           } />
-          <Route path="/profissional/disponibilidade" element={
-            <RotaProtegida perfis={['PROFISSIONAL']}><DisponibilidadeProfissionalPage /></RotaProtegida>
-          } />
+		  <Route path="/profissional/disponibilidade" element={
+			<RotaProtegida perfis={['PROFISSIONAL']}><DisponibilidadeProfissionalPage /></RotaProtegida>
+		  } />
+		  <Route path="/profissional/barbearia" element={
+			<RotaProtegida perfis={['PROFISSIONAL']}><MinhaBarbeariaPage /></RotaProtegida>
+		  } />
           <Route path="/admin/servicos" element={
             <RotaProtegida perfis={['ADMIN']}><AdminServicosPage /></RotaProtegida>
           } />
@@ -40,9 +45,12 @@ function App() {
           <Route path="/admin/usuarios" element={
             <RotaProtegida perfis={['ADMIN']}><AdminUsuariosPage /></RotaProtegida>
           } />
-          <Route path="/admin/profissionais" element={
-            <RotaProtegida perfis={['ADMIN']}><AdminProfissionaisPage /></RotaProtegida>
-          } />
+		  <Route path="/admin/profissionais" element={
+			<RotaProtegida perfis={['ADMIN']}><AdminProfissionaisPage /></RotaProtegida>
+		  } />
+		  <Route path="/admin/barbearias" element={
+			<RotaProtegida perfis={['ADMIN']}><AdminBarbeariasPage /></RotaProtegida>
+		  } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

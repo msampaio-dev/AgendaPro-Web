@@ -6,8 +6,9 @@ import type { Disponibilidade, SituacaoDisponibilidade } from '../types'
 import { NovoAgendamentoPage } from './NovoAgendamentoPage'
 
 const api = vi.hoisted(() => ({
-  listarServicos: vi.fn(),
-  listarProfissionaisDoServico: vi.fn(),
+  listarBarbearias: vi.fn(),
+  listarProfissionaisDaBarbearia: vi.fn(),
+  listarServicosDoProfissional: vi.fn(),
   consultarProximasDisponibilidades: vi.fn(),
   consultarDisponibilidade: vi.fn(),
   criarAgendamento: vi.fn(),
@@ -29,11 +30,22 @@ const servico = {
   preco: 50,
   ativo: true,
 }
+const barba = {
+  id: 6,
+  nome: 'Barba',
+  descricao: null,
+  duracaoMinutos: 20,
+  preco: 25,
+  ativo: true,
+}
+const barbearia = { id: 2, nome: 'Barbershopping Ipanema', ativo: true }
 const profissional = {
   id: 4,
   usuarioId: 8,
   nome: 'Marcelo',
   email: 'profissional@teste.com',
+  barbeariaId: 2,
+  barbeariaNome: 'Barbershopping Ipanema',
   ativo: true,
   fusoHorario: 'America/Sao_Paulo',
 }
@@ -53,17 +65,19 @@ function renderizarPagina() {
   render(<MemoryRouter><NovoAgendamentoPage /></MemoryRouter>)
 }
 
-async function selecionarServicoEProfissional() {
+async function selecionarFluxoBasico() {
   const usuario = userEvent.setup()
-  await usuario.click(await screen.findByRole('button', { name: /Corte/ }))
+  await usuario.click(await screen.findByRole('button', { name: /Barbershopping Ipanema/ }))
   await usuario.click(await screen.findByRole('button', { name: /Marcelo/ }))
+  await usuario.click(await screen.findByRole('button', { name: /Corte/ }))
   return usuario
 }
 
 describe('NovoAgendamentoPage', () => {
   beforeEach(() => {
-    api.listarServicos.mockResolvedValue([servico])
-    api.listarProfissionaisDoServico.mockResolvedValue([profissional])
+    api.listarBarbearias.mockResolvedValue([barbearia])
+    api.listarProfissionaisDaBarbearia.mockResolvedValue([profissional])
+    api.listarServicosDoProfissional.mockResolvedValue([servico, barba])
     api.consultarProximasDisponibilidades.mockResolvedValue([disponibilidade])
     api.consultarDisponibilidade.mockResolvedValue(disponibilidade)
     api.criarAgendamento.mockResolvedValue({
@@ -82,7 +96,7 @@ describe('NovoAgendamentoPage', () => {
 
   it('seleciona a próxima data e não oferece horário durante o almoço', async () => {
     renderizarPagina()
-    await selecionarServicoEProfissional()
+    await selecionarFluxoBasico()
 
     expect(await screen.findByDisplayValue('2030-01-07')).toBeVisible()
     expect(screen.getByRole('button', { name: '09:00' })).toBeVisible()
@@ -94,10 +108,10 @@ describe('NovoAgendamentoPage', () => {
   it.each<[SituacaoDisponibilidade, string]>([
     ['SEM_EXPEDIENTE', 'O profissional não atende neste dia.'],
     ['DIA_BLOQUEADO', 'A agenda está bloqueada nesta data.'],
-    ['SEM_ENCAIXE', 'Os intervalos livres são menores que a duração deste serviço.'],
+    ['SEM_ENCAIXE', 'Não há intervalo contínuo suficiente para os serviços selecionados.'],
     ['HORARIOS_ENCERRADOS', 'Todos os horários deste dia já passaram.'],
     ['HORARIOS_OCUPADOS', 'Todos os horários deste dia já foram reservados.'],
-    ['HORARIO_LOCAL_INVALIDO', 'Este horário não existe no fuso local devido à mudança do relógio.'],
+    ['HORARIO_LOCAL_INVALIDO', 'Este horário não existe no fuso local.'],
   ])('explica a indisponibilidade %s', async (situacao, mensagem) => {
     api.consultarDisponibilidade.mockResolvedValue({
       ...disponibilidade,
@@ -106,7 +120,7 @@ describe('NovoAgendamentoPage', () => {
       horarios: [],
     })
     renderizarPagina()
-    await selecionarServicoEProfissional()
+    await selecionarFluxoBasico()
 
     fireEvent.change(screen.getByLabelText('Outra data'), { target: { value: '2030-01-08' } })
 
@@ -116,24 +130,36 @@ describe('NovoAgendamentoPage', () => {
   it('informa quando não encontra horários nos próximos trinta dias', async () => {
     api.consultarProximasDisponibilidades.mockResolvedValue([])
     renderizarPagina()
-    await selecionarServicoEProfissional()
+    await selecionarFluxoBasico()
 
     expect(await screen.findByText(/Nenhum horário livre nos próximos 30 dias/)).toBeVisible()
   })
 
   it('envia somente os dados selecionados e confirma o agendamento', async () => {
     renderizarPagina()
-    const usuario = await selecionarServicoEProfissional()
+    const usuario = await selecionarFluxoBasico()
     await usuario.click(await screen.findByRole('button', { name: '09:00' }))
-    await usuario.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
+    await usuario.click(screen.getByRole('button', { name: /Confirmar/ }))
 
     expect(api.criarAgendamento).toHaveBeenCalledWith({
       clienteId: 7,
       profissionalId: 4,
       servicoId: 3,
+      servicoAdicionalId: null,
       data: '2030-01-07',
       horarioInicio: '09:00:00',
     }, 'token-teste')
     expect(await screen.findByRole('heading', { name: 'Seu horário está agendado.' })).toBeVisible()
+  })
+
+  it('recalcula a agenda e envia a barba como serviço adicional', async () => {
+    renderizarPagina()
+    const usuario = await selecionarFluxoBasico()
+    await usuario.click(screen.getByRole('checkbox', { name: /Adicionar barba/ }))
+    await usuario.click(await screen.findByRole('button', { name: '09:00' }))
+    await usuario.click(screen.getByRole('button', { name: /Confirmar/ }))
+
+    expect(api.consultarProximasDisponibilidades).toHaveBeenLastCalledWith(4, 3, expect.any(String), 'token-teste', 6)
+    expect(api.criarAgendamento).toHaveBeenCalledWith(expect.objectContaining({ servicoId: 3, servicoAdicionalId: 6 }), 'token-teste')
   })
 })

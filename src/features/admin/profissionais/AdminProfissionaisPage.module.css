@@ -22,14 +22,31 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .workspace { display: grid; grid-template-columns: 330px minmax(0,1fr); gap: 22px; align-items: start; }
 .professionals, .assignment { border: 1px solid var(--color-border); background: var(--color-surface); }
 .professionals > header, .profileHeader { padding: 25px 27px; border-bottom: 1px solid var(--color-border); }
-.professional { width: 100%; display: grid; gap: 5px; border: 0; border-bottom: 1px solid rgba(255,255,255,.07); padding: 18px 27px; color: var(--color-text); background: transparent; text-align: left; cursor: pointer; }
+.professional { width: 100%; display: grid; grid-template-columns: 45px minmax(0,1fr); gap: 5px 12px; border: 0; border-bottom: 1px solid rgba(255,255,255,.07); padding: 18px 27px; color: var(--color-text); background: transparent; text-align: left; cursor: pointer; }
 .professional:hover, .professional.selected { background: rgba(230,188,131,.06); }
 .professional.selected { box-shadow: inset 3px 0 var(--color-accent); }
+.professional > :not(.avatar) { grid-column: 2; }
 .professional small { overflow: hidden; color: var(--color-text-muted); text-overflow: ellipsis; }
+.avatar, .profilePhoto { display: grid; place-items: center; overflow: hidden; border-radius: 50%; color: var(--color-accent-light); background: #211c17; font-family: var(--font-display); }
+.avatar { grid-row: 1 / 4; width: 45px; height: 45px; font-size: 1.15rem; }
+.avatar img, .profilePhoto img { width: 100%; height: 100%; object-fit: cover; }
 .active, .inactive { font-size: .61rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .active { color: #8ed19a; } .inactive { color: #aaa49b; }
 .profileHeader { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.profileHeader > div { flex: 1; }
+.profilePhoto { width: 68px; height: 68px; flex: 0 0 auto; font-size: 1.8rem; }
 .profileHeader button, .services button { border: 1px solid rgba(239,155,144,.35); border-radius: 3px; padding: 9px 12px; color: #ef9b90; background: transparent; cursor: pointer; }
+.photoEditor { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; padding: 18px 27px; border-bottom: 1px solid var(--color-border); }
+.photoEditor label { display: grid; gap: 6px; color: var(--color-text-muted); font-size: .7rem; }
+.photoEditor input { max-width: 240px; border: 1px solid rgba(255,255,255,.12); padding: 8px; color: var(--color-text); background: #0e0e0e; }
+.photoEditor button { border: 1px solid var(--color-accent); border-radius: 3px; padding: 9px 12px; color: #100d09; background: var(--color-accent-light); font-weight: 700; cursor: pointer; }
+.photoEditor .removePhoto { color: #ef9b90; border-color: rgba(239,155,144,.35); background: transparent; }
+.photoEditor small { width: 100%; color: var(--color-text-muted); }
+.transferEditor { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; padding: 18px 27px; border-bottom: 1px solid var(--color-border); }
+.transferEditor label { display: grid; min-width: 260px; gap: 6px; color: var(--color-text-muted); font-size: .7rem; }
+.transferEditor select { border: 1px solid rgba(255,255,255,.12); padding: 10px; color: var(--color-text); background: #0e0e0e; }
+.transferEditor button { border: 1px solid var(--color-accent); border-radius: 3px; padding: 10px 13px; color: #100d09; background: var(--color-accent-light); font-weight: 700; cursor: pointer; }
+.transferEditor small { width: 100%; color: var(--color-text-muted); }
 .assignForm { padding: 22px 27px; border-bottom: 1px solid var(--color-border); }
 .services article { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 19px 27px; border-bottom: 1px solid rgba(255,255,255,.07); }
 .services article:last-child { border-bottom: 0; }

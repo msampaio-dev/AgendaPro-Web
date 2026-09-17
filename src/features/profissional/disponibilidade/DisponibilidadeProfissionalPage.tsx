@@ -194,7 +194,7 @@ export function DisponibilidadeProfissionalPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}><Link to="/">AgendaPro</Link><nav><Link to="/profissional/agenda">Agenda</Link><Link to="/profissional/disponibilidade">Disponibilidade</Link><Link to="/painel">Painel</Link></nav></header>
+      <header className={styles.header}><Link to="/">AgendaPro</Link><nav><Link to="/profissional/agenda">Agenda</Link><Link to="/profissional/disponibilidade">Disponibilidade</Link><Link to="/profissional/barbearia">Minha barbearia</Link><Link to="/painel">Painel</Link></nav></header>
       <main className={styles.content}>
         <section className={styles.intro}><div><p className={styles.eyebrow}>Área profissional</p><h1>Disponibilidade</h1></div><p>Horários definidos em <strong>{sessao?.fusoHorario || 'seu fuso local'}</strong>. A agenda semanal se repete; exceções valem apenas na data escolhida.</p></section>
         {erro && <div className={styles.error} role="alert">{erro}</div>}
