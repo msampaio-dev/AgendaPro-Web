@@ -1,0 +1,16 @@
+.page { min-height: 100vh; background: radial-gradient(circle at 82% 5%, rgba(201,148,85,.12), transparent 28rem), var(--color-background); }
+.page > header { width: min(calc(100% - 40px), var(--content-width)); min-height: 82px; margin: auto; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--color-border); }
+.page > header > a { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; text-decoration: none; }
+.page nav { display: flex; gap: 20px; } .page nav a { color: var(--color-text-muted); font-size: .8rem; text-decoration: none; } .page nav a[aria-current='page'] { color: var(--color-accent-light); }
+.page main { width: min(calc(100% - 40px), 900px); margin: auto; padding: 68px 0 100px; }
+.eyebrow { margin: 0; color: var(--color-accent-light); font-size: .67rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+.page h1 { margin: 8px 0 16px; font: 600 clamp(3rem,7vw,5rem)/1 var(--font-display); }
+.intro { width: min(100%, 620px); margin: 0 0 34px; color: var(--color-text-muted); line-height: 1.6; }
+.error { margin-bottom: 18px; border: 1px solid rgba(255,110,93,.35); padding: 13px 16px; color: #ffc0b8; background: rgba(150,40,28,.16); }
+.list { display: grid; gap: 12px; } .list article, .empty { border: 1px solid var(--color-border); padding: 24px; background: var(--color-surface); }
+.list article { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.list span { color: var(--color-accent-light); font-size: .65rem; font-weight: 700; letter-spacing: .12em; }
+.list h2, .empty h2 { margin: 6px 0; font: 1.55rem var(--font-display); } .list p, .empty p, .feedback { margin: 0; color: var(--color-text-muted); }
+.actions { display: flex; gap: 8px; } .actions button { border: 1px solid var(--color-border); padding: 10px 13px; color: var(--color-text); background: transparent; cursor: pointer; } .actions button:last-child { color: #100d09; border-color: var(--color-accent); background: var(--color-accent-light); font-weight: 700; }
+button:disabled { cursor: not-allowed; opacity: .45; }
+@media (max-width: 650px) { .list article { align-items: stretch; flex-direction: column; } .actions button { flex: 1; } }
