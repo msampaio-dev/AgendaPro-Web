@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { LoginRequest, PerfilUsuario, SessaoResponse } from '../types'
+import type { LoginRequest, LoginResponse, PerfilUsuario, SessaoResponse } from '../types'
 
 export type AuthContextValue = {
   sessao: SessaoResponse | null
@@ -7,6 +7,7 @@ export type AuthContextValue = {
   carregando: boolean
   autenticado: boolean
   entrar: (credenciais: LoginRequest) => Promise<void>
+  atualizarCredencial: (credencial: LoginResponse) => Promise<void>
   sair: () => void
   possuiPerfil: (...perfis: PerfilUsuario[]) => boolean
 }

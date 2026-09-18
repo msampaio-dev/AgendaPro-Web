@@ -31,6 +31,7 @@ export function PainelPage() {
 
         <section className={styles.actions} aria-label="Áreas disponíveis">
           <article><span>Cliente</span><h2>Meus agendamentos</h2><p>Acompanhe seu histórico, filtre e cancele horários.</p><div><Link to="/meus-agendamentos">Ver agenda</Link><Link to="/agendar">Novo horário</Link></div></article>
+          <article><span>Equipe</span><h2>Convites profissionais</h2><p>Consulte convites recebidos para trabalhar em uma barbearia.</p><div><Link to="/convites">Ver convites</Link></div></article>
           {possuiPerfil('PROFISSIONAL') && (
             <article><span>Profissional</span><h2>Minha operação</h2><p>Consulte atendimentos, disponibilidade e administre sua própria barbearia.</p><div><Link to="/profissional/agenda">Agenda</Link><Link to="/profissional/disponibilidade">Disponibilidade</Link><Link to="/profissional/barbearia">Minha barbearia</Link></div></article>
           )}

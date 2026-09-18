@@ -15,6 +15,7 @@ import { AdminDashboardPage } from './features/admin/dashboard/AdminDashboardPag
 import { AdminUsuariosPage } from './features/admin/usuarios/AdminUsuariosPage'
 import { AdminBarbeariasPage } from './features/admin/barbearias/AdminBarbeariasPage'
 import { MinhaBarbeariaPage } from './features/profissional/barbearia/MinhaBarbeariaPage'
+import { MeusConvitesPage } from './features/convites/MeusConvitesPage'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/painel" element={<RotaProtegida><PainelPage /></RotaProtegida>} />
           <Route path="/agendar" element={<RotaProtegida><NovoAgendamentoPage /></RotaProtegida>} />
           <Route path="/meus-agendamentos" element={<RotaProtegida><MeusAgendamentosPage /></RotaProtegida>} />
+          <Route path="/convites" element={<RotaProtegida><MeusConvitesPage /></RotaProtegida>} />
           <Route path="/profissional/agenda" element={
             <RotaProtegida perfis={['PROFISSIONAL']}><AgendaProfissionalPage /></RotaProtegida>
           } />

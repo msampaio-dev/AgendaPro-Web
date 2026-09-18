@@ -46,6 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function entrar(credenciais: LoginRequest) {
     const novaCredencial = await login(credenciais)
+    await atualizarCredencial(novaCredencial)
+  }
+
+  async function atualizarCredencial(novaCredencial: LoginResponse) {
     salvarSessao(novaCredencial)
 
     try {
@@ -75,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       carregando,
       autenticado: Boolean(sessao),
       entrar,
+      atualizarCredencial,
       sair,
       possuiPerfil,
     }}>
