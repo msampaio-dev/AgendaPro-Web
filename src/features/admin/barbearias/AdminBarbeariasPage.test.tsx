@@ -38,11 +38,25 @@ describe('AdminBarbeariasPage', () => {
 		vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => 'blob:preview'), revokeObjectURL: vi.fn() })
 	})
 
-	it('lista unidades ativas e inativas', async () => {
+	it('lista apenas as ativas e revela as inativas pelo filtro', async () => {
+		const usuario = userEvent.setup()
 		renderizar()
+
 		expect(await screen.findByText('Barbearia Centro')).toBeVisible()
+		expect(screen.queryByText('Unidade antiga')).toBeNull()
+
+		await usuario.click(screen.getByLabelText('Mostrar unidades inativas'))
+
 		expect(screen.getByText('Unidade antiga')).toBeVisible()
 		expect(screen.getByText('Inativa')).toBeVisible()
+	})
+
+	it('leva ao detalhe da unidade', async () => {
+		renderizar()
+		await screen.findByText('Barbearia Centro')
+
+		expect(screen.getByRole('link', { name: 'Ver detalhes' }))
+			.toHaveAttribute('href', '/admin/barbearias/1')
 	})
 
 	it('cadastra uma barbearia e envia sua foto', async () => {

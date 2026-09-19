@@ -122,7 +122,7 @@ export function AdminUsuariosPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Link to="/">AgendaPro</Link>
-        <nav><Link to="/admin">Visão geral</Link><Link to="/admin/barbearias">Barbearias</Link><Link aria-current="page" to="/admin/usuarios">Usuários</Link><Link to="/admin/servicos">Serviços</Link><Link to="/admin/profissionais">Profissionais</Link><Link to="/painel">Painel</Link></nav>
+        <nav><Link to="/admin">Visão geral</Link><Link to="/admin/barbearias">Barbearias</Link><Link aria-current="page" to="/admin/usuarios">Usuários</Link><Link to="/admin/profissionais">Profissionais</Link><Link to="/painel">Painel</Link></nav>
       </header>
 
       <main className={styles.content}>

@@ -8,12 +8,12 @@ import { PainelPage } from './pages/painel/PainelPage'
 import { NovoAgendamentoPage } from './features/agendamentos/pages/NovoAgendamentoPage'
 import { MeusAgendamentosPage } from './features/agendamentos/pages/MeusAgendamentosPage'
 import { AgendaProfissionalPage } from './features/profissional/pages/AgendaProfissionalPage'
-import { AdminServicosPage } from './features/admin/servicos/AdminServicosPage'
 import { AdminProfissionaisPage } from './features/admin/profissionais/AdminProfissionaisPage'
 import { DisponibilidadeProfissionalPage } from './features/profissional/disponibilidade/DisponibilidadeProfissionalPage'
 import { AdminDashboardPage } from './features/admin/dashboard/AdminDashboardPage'
 import { AdminUsuariosPage } from './features/admin/usuarios/AdminUsuariosPage'
 import { AdminBarbeariasPage } from './features/admin/barbearias/AdminBarbeariasPage'
+import { AdminBarbeariaDetalhePage } from './features/admin/barbearias/AdminBarbeariaDetalhePage'
 import { MinhaBarbeariaPage } from './features/profissional/barbearia/MinhaBarbeariaPage'
 import { MeusConvitesPage } from './features/convites/MeusConvitesPage'
 
@@ -38,9 +38,6 @@ function App() {
 		  <Route path="/profissional/barbearia" element={
 			<RotaProtegida perfis={['PROFISSIONAL']}><MinhaBarbeariaPage /></RotaProtegida>
 		  } />
-          <Route path="/admin/servicos" element={
-            <RotaProtegida perfis={['ADMIN']}><AdminServicosPage /></RotaProtegida>
-          } />
           <Route path="/admin" element={
             <RotaProtegida perfis={['ADMIN']}><AdminDashboardPage /></RotaProtegida>
           } />
@@ -52,6 +49,9 @@ function App() {
 		  } />
 		  <Route path="/admin/barbearias" element={
 			<RotaProtegida perfis={['ADMIN']}><AdminBarbeariasPage /></RotaProtegida>
+		  } />
+		  <Route path="/admin/barbearias/:id" element={
+			<RotaProtegida perfis={['ADMIN']}><AdminBarbeariaDetalhePage /></RotaProtegida>
 		  } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
