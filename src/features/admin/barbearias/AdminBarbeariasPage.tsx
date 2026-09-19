@@ -38,6 +38,7 @@ export function AdminBarbeariasPage() {
 	const [fechamento, setFechamento] = useState('19:00')
 	const [foto, setFoto] = useState<File | null>(null)
 	const [preview, setPreview] = useState<string | null>(null)
+	const [mostrarInativas, setMostrarInativas] = useState(false)
 	const [carregando, setCarregando] = useState(true)
 	const [processando, setProcessando] = useState(false)
 	const [erro, setErro] = useState('')
@@ -124,8 +125,12 @@ export function AdminBarbeariasPage() {
 	function alternarDia(dia: DiaSemana) { setDiasAbertos((atuais) => atuais.includes(dia) ? atuais.filter((item) => item !== dia) : [...atuais, dia]) }
 	function limparAvisos() { setErro(''); setMensagem('') }
 
+	// A administracao trabalha sobre as unidades ativas; as desativadas
+	// continuam alcancaveis pelo filtro, para nao sumirem do painel.
+	const visiveis = mostrarInativas ? barbearias : barbearias.filter((barbearia) => barbearia.ativo)
+
 	return <div className={styles.page}>
-		<header className={styles.header}><Link to="/">AgendaPro</Link><nav><Link to="/admin">Visão geral</Link><Link aria-current="page" to="/admin/barbearias">Barbearias</Link><Link to="/admin/usuarios">Usuários</Link><Link to="/admin/servicos">Serviços</Link><Link to="/admin/profissionais">Profissionais</Link><Link to="/painel">Painel</Link></nav></header>
+		<header className={styles.header}><Link to="/">AgendaPro</Link><nav><Link to="/admin">Visão geral</Link><Link aria-current="page" to="/admin/barbearias">Barbearias</Link><Link to="/admin/usuarios">Usuários</Link><Link to="/admin/profissionais">Profissionais</Link><Link to="/painel">Painel</Link></nav></header>
 		<main className={styles.content}>
 			<section className={styles.intro}><div><p className={styles.eyebrow}>Administração</p><h1>Barbearias</h1></div><p>Cada unidade possui proprietário, endereço e funcionamento próprios.</p></section>
 			{erro && <div className={styles.error} role="alert">{erro}</div>}{mensagem && <div className={styles.success} role="status">{mensagem}</div>}
@@ -147,7 +152,8 @@ export function AdminBarbeariasPage() {
 					<div><button disabled={processando || !nome.trim()} type="submit">{processando ? 'Salvando...' : editando ? 'Salvar alterações' : 'Cadastrar'}</button>{editando && <button className={styles.secondary} disabled={processando} onClick={cancelarEdicao} type="button">Cancelar</button>}</div>
 				</form>
 			</section>
-			{carregando ? <p className={styles.feedback}>Carregando barbearias...</p> : <section className={styles.grid}>{barbearias.map((barbearia) => <article className={!barbearia.ativo ? styles.inactive : ''} key={barbearia.id}><div className={styles.cover}>{barbearia.fotoUrl ? <img alt="" src={apiAssetUrl(barbearia.fotoUrl) ?? ''} /> : <span>{barbearia.nome.charAt(0)}</span>}<small>{barbearia.ativo ? 'Ativa' : 'Inativa'}</small></div><div className={styles.cardBody}><span>Unidade #{barbearia.id}</span><h2>{barbearia.nome}</h2><p>{barbearia.proprietarioNome ? `Proprietário: ${barbearia.proprietarioNome}` : 'Sem proprietário definido'}</p><p>{barbearia.logradouro ? `${barbearia.logradouro}, ${barbearia.numero} · ${barbearia.cidade}/${barbearia.estado}` : 'Endereço pendente'}</p><div><button disabled={processando} onClick={() => editar(barbearia)} type="button">Editar</button>{barbearia.fotoUrl && <button disabled={processando} onClick={() => removerFoto(barbearia)} type="button">Remover foto</button>}{barbearia.ativo && <button className={styles.danger} disabled={processando} onClick={() => desativar(barbearia)} type="button">Desativar</button>}</div></div></article>)}</section>}
+			<div className={styles.filtro}><label><input checked={mostrarInativas} onChange={(event) => setMostrarInativas(event.target.checked)} type="checkbox" />Mostrar unidades inativas</label></div>
+			{carregando ? <p className={styles.feedback}>Carregando barbearias...</p> : visiveis.length === 0 ? <p className={styles.feedback}>Nenhuma unidade para mostrar.</p> : <section className={styles.grid}>{visiveis.map((barbearia) => <article className={!barbearia.ativo ? styles.inactive : ''} key={barbearia.id}><div className={styles.cover}>{barbearia.fotoUrl ? <img alt="" src={apiAssetUrl(barbearia.fotoUrl) ?? ''} /> : <span>{barbearia.nome.charAt(0)}</span>}<small>{barbearia.ativo ? 'Ativa' : 'Inativa'}</small></div><div className={styles.cardBody}><span>Unidade #{barbearia.id}</span><h2>{barbearia.nome}</h2><p>{barbearia.proprietarioNome ? `Proprietário: ${barbearia.proprietarioNome}` : 'Sem proprietário definido'}</p><p>{barbearia.logradouro ? `${barbearia.logradouro}, ${barbearia.numero} · ${barbearia.cidade}/${barbearia.estado}` : 'Endereço pendente'}</p><div><Link className={styles.linkBotao} to={`/admin/barbearias/${barbearia.id}`}>Ver detalhes</Link><button disabled={processando} onClick={() => editar(barbearia)} type="button">Editar</button>{barbearia.fotoUrl && <button disabled={processando} onClick={() => removerFoto(barbearia)} type="button">Remover foto</button>}{barbearia.ativo && <button className={styles.danger} disabled={processando} onClick={() => desativar(barbearia)} type="button">Desativar</button>}</div></div></article>)}</section>}
 		</main>
 	</div>
 }
