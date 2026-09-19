@@ -78,7 +78,7 @@ test('profissional consulta a semana, abre detalhes e confirma atendimento', asy
   await page.getByLabel('E-mail').fill('profissional@teste.com')
   await page.getByLabel('Senha').fill('senha-segura')
   await page.getByRole('button', { name: 'Entrar' }).click()
-  await page.getByRole('link', { name: 'Abrir agenda' }).click()
+  await page.getByRole('link', { name: 'Agenda', exact: true }).click()
 
   await expect(page.getByRole('heading', { name: 'Cliente Teste' })).toBeVisible()
   await page.getByRole('button', { name: 'Semana' }).click()
