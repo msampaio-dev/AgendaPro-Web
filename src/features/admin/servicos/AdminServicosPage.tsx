@@ -1,7 +1,8 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError } from '../../../services/api'
-import type { Servico } from '../../agendamentos/types'
+import type { Barbearia, Servico } from '../../agendamentos/types'
+import { listarBarbeariasAdmin } from '../barbearias/adminBarbeariaApi'
 import { useAuth } from '../../auth/context/useAuth'
 import {
   atualizarServico,
@@ -17,15 +18,17 @@ type Formulario = {
   descricao: string
   duracaoMinutos: string
   preco: string
+  barbeariaId: string
 }
 
 type ErrosFormulario = Partial<Record<keyof Formulario, string>>
 
-const formularioVazio: Formulario = { nome: '', descricao: '', duracaoMinutos: '', preco: '' }
+const formularioVazio: Formulario = { nome: '', descricao: '', duracaoMinutos: '', preco: '', barbeariaId: '' }
 
 export function AdminServicosPage() {
   const { token } = useAuth()
   const [servicos, setServicos] = useState<Servico[]>([])
+  const [barbearias, setBarbearias] = useState<Barbearia[]>([])
   const [formulario, setFormulario] = useState<Formulario>(formularioVazio)
   const [editandoId, setEditandoId] = useState<number | null>(null)
   const [errosFormulario, setErrosFormulario] = useState<ErrosFormulario>({})
@@ -38,8 +41,12 @@ export function AdminServicosPage() {
   useEffect(() => {
     if (!token) return
     let ativo = true
-    listarServicosAdmin(token)
-      .then((dados) => { if (ativo) setServicos(dados) })
+    Promise.all([listarServicosAdmin(token), listarBarbeariasAdmin(token)])
+      .then(([listaServicos, listaBarbearias]) => {
+        if (!ativo) return
+        setServicos(listaServicos)
+        setBarbearias(listaBarbearias)
+      })
       .catch((error) => { if (ativo) setErro(mensagemDoErro(error, 'Não foi possível carregar os serviços.')) })
       .finally(() => { if (ativo) setCarregando(false) })
     return () => { ativo = false }
@@ -62,6 +69,7 @@ export function AdminServicosPage() {
       descricao: servico.descricao ?? '',
       duracaoMinutos: String(servico.duracaoMinutos),
       preco: String(servico.preco),
+      barbeariaId: String(servico.barbeariaId),
     })
     setEditandoId(servico.id)
     setErro('')
@@ -89,7 +97,7 @@ export function AdminServicosPage() {
         await atualizarServico(editandoId, dados, token)
         setMensagem('Serviço atualizado com sucesso.')
       } else {
-        await cadastrarServico(dados, token)
+        await cadastrarServico({ ...dados, barbeariaId: Number(formulario.barbeariaId) }, token)
         setMensagem('Serviço cadastrado com sucesso.')
       }
       limparFormulario()
@@ -142,6 +150,7 @@ export function AdminServicosPage() {
             {erro && <div className={styles.error} role="alert">{erro}</div>}
             {mensagem && <div className={styles.success} role="status">{mensagem}</div>}
 
+            {!editandoId && <label>Barbearia<select required value={formulario.barbeariaId} onChange={(event) => setFormulario({ ...formulario, barbeariaId: event.target.value })}><option value="">Selecione a barbearia</option>{barbearias.map((barbearia) => <option key={barbearia.id} value={barbearia.id}>{barbearia.nome}</option>)}</select>{errosFormulario.barbeariaId && <small>{errosFormulario.barbeariaId}</small>}</label>}
             <label>Nome<input maxLength={120} required value={formulario.nome} onChange={(event) => setFormulario({ ...formulario, nome: event.target.value })} />{errosFormulario.nome && <small>{errosFormulario.nome}</small>}</label>
             <label>Descrição<textarea maxLength={500} rows={4} value={formulario.descricao} onChange={(event) => setFormulario({ ...formulario, descricao: event.target.value })} />{errosFormulario.descricao && <small>{errosFormulario.descricao}</small>}</label>
             <div className={styles.formRow}>

@@ -9,6 +9,8 @@ import {
 	associarServicoProfissional,
 	atualizarMinhaBarbearia,
 	criarMinhaBarbearia,
+	criarServicoBarbearia,
+	desativarServicoBarbearia,
 	enviarFotoBarbearia,
 	listarEquipeBarbearia,
 	listarHorariosBarbearia,
@@ -48,6 +50,10 @@ export function MinhaBarbeariaPage() {
 	const [profissionalSelecionado, setProfissionalSelecionado] = useState<Profissional | null>(null)
 	const [associacoes, setAssociacoes] = useState<ProfissionalServico[]>([])
 	const [servicoId, setServicoId] = useState('')
+	const [novoServicoNome, setNovoServicoNome] = useState('')
+	const [novoServicoDescricao, setNovoServicoDescricao] = useState('')
+	const [novoServicoDuracao, setNovoServicoDuracao] = useState('30')
+	const [novoServicoPreco, setNovoServicoPreco] = useState('')
 	const [novoDia, setNovoDia] = useState<DiaSemana>('MONDAY')
 	const [novoInicio, setNovoInicio] = useState('09:00')
 	const [novoFim, setNovoFim] = useState('12:00')
@@ -75,7 +81,7 @@ export function MinhaBarbeariaPage() {
 		try {
 			const [periodos, profissionais, catalogo] = await Promise.all([
 				listarHorariosBarbearia(barbearia.id, token), listarEquipeBarbearia(barbearia.id, token),
-				listarServicosDisponiveis(token),
+				listarServicosDisponiveis(barbearia.id, token),
 			])
 			setHorarios(periodos); setEquipe(profissionais); setServicos(catalogo); setProfissionalSelecionado(null); setAssociacoes([])
 		} catch (error) { setErro(mensagemErro(error, 'Não foi possível carregar os detalhes da unidade.')) }
@@ -117,6 +123,35 @@ export function MinhaBarbeariaPage() {
 		setProcessando(true); limparAvisos()
 		try { await removerHorarioBarbearia(selecionadaId, horario.id, token); setHorarios(await listarHorariosBarbearia(selecionadaId, token)); setMensagem('Período removido.') }
 		catch (error) { setErro(mensagemErro(error, 'Não foi possível remover o período.')) }
+		finally { setProcessando(false) }
+	}
+
+	async function criarServico(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault(); if (!token || !selecionada) return
+		setProcessando(true); limparAvisos()
+		try {
+			await criarServicoBarbearia(selecionada.id, {
+				nome: novoServicoNome,
+				descricao: novoServicoDescricao.trim() || null,
+				duracaoMinutos: Number(novoServicoDuracao),
+				preco: Number(novoServicoPreco),
+			}, token)
+			setServicos(await listarServicosDisponiveis(selecionada.id, token))
+			setNovoServicoNome(''); setNovoServicoDescricao(''); setNovoServicoDuracao('30'); setNovoServicoPreco('')
+			setMensagem('Serviço criado.')
+		} catch (error) { setErro(mensagemErro(error, 'Não foi possível criar o serviço.')) }
+		finally { setProcessando(false) }
+	}
+
+	async function desativarServico(servico: Servico) {
+		if (!token || !selecionada) return
+		setProcessando(true); limparAvisos()
+		try {
+			await desativarServicoBarbearia(servico.id, token)
+			setServicos(await listarServicosDisponiveis(selecionada.id, token))
+			if (profissionalSelecionado) setAssociacoes(await listarServicosProfissional(profissionalSelecionado.id, token))
+			setMensagem('Serviço desativado.')
+		} catch (error) { setErro(mensagemErro(error, 'Não foi possível desativar o serviço.')) }
 		finally { setProcessando(false) }
 	}
 
@@ -180,7 +215,7 @@ export function MinhaBarbeariaPage() {
 					{criando && <fieldset><legend>Funcionamento inicial</legend><div className={styles.days}>{dias.map((dia) => <label key={dia.valor}><input checked={diasAbertos.includes(dia.valor)} onChange={() => alternarDia(dia.valor)} type="checkbox" />{dia.curto}</label>)}</div><div className={styles.times}><label>Abertura<input onChange={(e) => setAbertura(e.target.value)} type="time" value={abertura} /></label><label>Início do intervalo<input onChange={(e) => setInicioIntervalo(e.target.value)} type="time" value={inicioIntervalo} /></label><label>Fim do intervalo<input onChange={(e) => setFimIntervalo(e.target.value)} type="time" value={fimIntervalo} /></label><label>Fechamento<input onChange={(e) => setFechamento(e.target.value)} type="time" value={fechamento} /></label></div></fieldset>}
 					<button disabled={processando} type="submit">{processando ? 'Salvando...' : criando ? 'Criar minha barbearia' : 'Salvar dados'}</button></form>
 			</section>
-			{!criando && selecionada && <div className={styles.management}><section><header><span>Funcionamento</span><h2>Horários da unidade</h2></header><form className={styles.hourForm} onSubmit={adicionarHorario}><select aria-label="Dia" onChange={(e) => setNovoDia(e.target.value as DiaSemana)} value={novoDia}>{dias.map((dia) => <option key={dia.valor} value={dia.valor}>{dia.nome}</option>)}</select><input aria-label="Início" onChange={(e) => setNovoInicio(e.target.value)} type="time" value={novoInicio} /><input aria-label="Fim" onChange={(e) => setNovoFim(e.target.value)} type="time" value={novoFim} /><button disabled={processando}>Adicionar</button></form><div className={styles.schedule}>{dias.map((dia) => <article key={dia.valor}><strong>{dia.curto}</strong><div>{horarios.filter((item) => item.diaSemana === dia.valor).map((item) => <span key={item.id}>{item.horarioInicio.slice(0,5)}–{item.horarioFim.slice(0,5)} <button aria-label={`Remover ${dia.nome} ${item.horarioInicio}`} onClick={() => removerHorario(item)} type="button">×</button></span>)}</div></article>)}</div></section><section><header><span>Equipe</span><h2>{equipe.filter((item) => item.ativo).length} profissionais ativos</h2></header><div className={styles.team}>{equipe.map((item) => <article key={item.id}><span>{item.fotoUrl ? <img alt="" src={apiAssetUrl(item.fotoUrl) ?? ''} /> : item.nome.charAt(0)}</span><div><strong>{item.nome}</strong><small>{item.id === selecionada.proprietarioProfissionalId ? 'Proprietário da unidade' : item.email}</small></div><button onClick={() => gerenciarServicos(item)} type="button">Serviços</button>{item.id !== selecionada.proprietarioProfissionalId && <button disabled={processando} onClick={() => transferirPropriedade(item)} type="button">Tornar dono</button>}</article>)}</div>{profissionalSelecionado && <div className={styles.services}><h3>Serviços de {profissionalSelecionado.nome}</h3><form onSubmit={associarServico}><select aria-label="Novo serviço" onChange={(event) => setServicoId(event.target.value)} required value={servicoId}><option value="">Selecione um serviço</option>{servicos.filter((servico) => servico.ativo && !associacoes.some((item) => item.servicoId === servico.id)).map((servico) => <option key={servico.id} value={servico.id}>{servico.nome} · {servico.duracaoMinutos} min</option>)}</select><button disabled={processando || !servicoId}>Associar</button></form><div>{associacoes.map((associacao) => { const servico = servicos.find((item) => item.id === associacao.servicoId); return <p key={associacao.id}><span>{servico?.nome ?? `Serviço ${associacao.servicoId}`}</span><button disabled={processando} onClick={() => removerServico(associacao)} type="button">Remover</button></p> })}</div></div>}</section></div>}
+			{!criando && selecionada && <div className={styles.management}><section><header><span>Funcionamento</span><h2>Horários da unidade</h2></header><form className={styles.hourForm} onSubmit={adicionarHorario}><select aria-label="Dia" onChange={(e) => setNovoDia(e.target.value as DiaSemana)} value={novoDia}>{dias.map((dia) => <option key={dia.valor} value={dia.valor}>{dia.nome}</option>)}</select><input aria-label="Início" onChange={(e) => setNovoInicio(e.target.value)} type="time" value={novoInicio} /><input aria-label="Fim" onChange={(e) => setNovoFim(e.target.value)} type="time" value={novoFim} /><button disabled={processando}>Adicionar</button></form><div className={styles.schedule}>{dias.map((dia) => <article key={dia.valor}><strong>{dia.curto}</strong><div>{horarios.filter((item) => item.diaSemana === dia.valor).map((item) => <span key={item.id}>{item.horarioInicio.slice(0,5)}–{item.horarioFim.slice(0,5)} <button aria-label={`Remover ${dia.nome} ${item.horarioInicio}`} onClick={() => removerHorario(item)} type="button">×</button></span>)}</div></article>)}</div></section><section><header><span>Catálogo</span><h2>Serviços da unidade</h2></header><form className={styles.hourForm} onSubmit={criarServico}><input aria-label="Nome do serviço" onChange={(e) => setNovoServicoNome(e.target.value)} placeholder="Nome" required value={novoServicoNome} /><input aria-label="Descrição do serviço" onChange={(e) => setNovoServicoDescricao(e.target.value)} placeholder="Descrição (opcional)" value={novoServicoDescricao} /><input aria-label="Duração em minutos" min="1" onChange={(e) => setNovoServicoDuracao(e.target.value)} required type="number" value={novoServicoDuracao} /><input aria-label="Preço" min="0" onChange={(e) => setNovoServicoPreco(e.target.value)} placeholder="Preço" required step="0.01" type="number" value={novoServicoPreco} /><button disabled={processando}>Criar serviço</button></form><div className={styles.services}>{servicos.length === 0 && <p>Nenhum serviço cadastrado ainda.</p>}{servicos.map((servico) => <p key={servico.id}><span>{servico.nome} · {servico.duracaoMinutos} min · R$ {servico.preco.toFixed(2)}{!servico.ativo && ' (inativo)'}</span>{servico.ativo && <button disabled={processando} onClick={() => desativarServico(servico)} type="button">Desativar</button>}</p>)}</div></section><section><header><span>Equipe</span><h2>{equipe.filter((item) => item.ativo).length} profissionais ativos</h2></header><div className={styles.team}>{equipe.map((item) => <article key={item.id}><span>{item.fotoUrl ? <img alt="" src={apiAssetUrl(item.fotoUrl) ?? ''} /> : item.nome.charAt(0)}</span><div><strong>{item.nome}</strong><small>{item.id === selecionada.proprietarioProfissionalId ? 'Proprietário da unidade' : item.email}</small></div><button onClick={() => gerenciarServicos(item)} type="button">Serviços</button>{item.id !== selecionada.proprietarioProfissionalId && <button disabled={processando} onClick={() => transferirPropriedade(item)} type="button">Tornar dono</button>}</article>)}</div>{profissionalSelecionado && <div className={styles.services}><h3>Serviços de {profissionalSelecionado.nome}</h3><form onSubmit={associarServico}><select aria-label="Novo serviço" onChange={(event) => setServicoId(event.target.value)} required value={servicoId}><option value="">Selecione um serviço</option>{servicos.filter((servico) => servico.ativo && !associacoes.some((item) => item.servicoId === servico.id)).map((servico) => <option key={servico.id} value={servico.id}>{servico.nome} · {servico.duracaoMinutos} min</option>)}</select><button disabled={processando || !servicoId}>Associar</button></form><div>{associacoes.map((associacao) => { const servico = servicos.find((item) => item.id === associacao.servicoId); return <p key={associacao.id}><span>{servico?.nome ?? `Serviço ${associacao.servicoId}`}</span><button disabled={processando} onClick={() => removerServico(associacao)} type="button">Remover</button></p> })}</div></div>}</section></div>}
 			{!criando && selecionada && token && <GestaoConvitesEquipe key={selecionada.id} barbeariaId={selecionada.id} token={token} />}
 		</main>
 	</div>
