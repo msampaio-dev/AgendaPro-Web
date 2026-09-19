@@ -67,6 +67,9 @@ export function MinhaBarbeariaPage() {
 	// identidade, funcionamento, convites e propriedade seguem com o dono.
 	const souProprietario = selecionada != null && selecionada.proprietarioProfissionalId === sessao?.profissionalId
 	const podeEditarUnidade = criando || souProprietario
+	// Onde ele trabalha sem ser dono. Criar uma unidade propria o transfere para
+	// ela, entao e daqui que sai o aviso antes de sair da equipe de alguem.
+	const unidadeDeTrabalho = barbearias.find((item) => item.proprietarioProfissionalId !== sessao?.profissionalId) ?? null
 
 	useEffect(() => {
 		if (!token) return
@@ -92,6 +95,9 @@ export function MinhaBarbeariaPage() {
 	}
 
 	function iniciarCriacao() {
+		if (unidadeDeTrabalho && !window.confirm(
+			`Criar uma barbearia própria vai tirar você da equipe de ${unidadeDeTrabalho.nome}. Deseja continuar?`
+		)) return
 		setCriando(true); setSelecionadaId(null); setNome(''); setEndereco(enderecoVazio); setFoto(null); setHorarios([]); setEquipe([]); limparAvisos()
 	}
 

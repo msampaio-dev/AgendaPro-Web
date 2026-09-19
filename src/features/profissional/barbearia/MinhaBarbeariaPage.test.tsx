@@ -54,6 +54,7 @@ function renderizar(profissionalId: number) {
 
 describe('MinhaBarbeariaPage', () => {
 	beforeEach(() => {
+		vi.restoreAllMocks()
 		vi.clearAllMocks()
 		listarMinhasBarbearias.mockResolvedValue([barbearia])
 		listarServicosDisponiveis.mockResolvedValue([])
@@ -85,6 +86,34 @@ describe('MinhaBarbeariaPage', () => {
 		expect(screen.queryByRole('heading', { name: 'Horários da unidade' })).toBeNull()
 		expect(screen.queryByRole('heading', { name: 'Convites da equipe' })).toBeNull()
 		expect(screen.queryByRole('button', { name: 'Salvar dados' })).toBeNull()
+	})
+
+	it('avisa o profissional da equipe antes de tirá-lo da unidade onde trabalha', async () => {
+		const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(false)
+		renderizar(MEMBRO_ID)
+
+		expect(await screen.findByRole('heading', { name: 'Serviços da unidade' })).toBeVisible()
+		await userEvent.click(screen.getByRole('button', { name: '+ Nova barbearia' }))
+
+		expect(confirmar).toHaveBeenCalledWith(expect.stringContaining(barbearia.nome))
+		expect(screen.getByRole('heading', { name: 'Serviços da unidade' })).toBeVisible()
+		expect(screen.queryByRole('button', { name: 'Criar minha barbearia' })).toBeNull()
+
+		confirmar.mockReturnValue(true)
+		await userEvent.click(screen.getByRole('button', { name: '+ Nova barbearia' }))
+
+		expect(screen.getByRole('button', { name: 'Criar minha barbearia' })).toBeVisible()
+	})
+
+	it('não avisa o proprietário, que não sai de equipe nenhuma ao criar outra unidade', async () => {
+		const confirmar = vi.spyOn(window, 'confirm').mockReturnValue(true)
+		renderizar(PROPRIETARIO_ID)
+
+		expect(await screen.findByRole('heading', { name: 'Horários da unidade' })).toBeVisible()
+		await userEvent.click(screen.getByRole('button', { name: '+ Nova barbearia' }))
+
+		expect(confirmar).not.toHaveBeenCalled()
+		expect(screen.getByRole('button', { name: 'Criar minha barbearia' })).toBeVisible()
 	})
 
 	it('mantém a administração completa para o proprietário', async () => {
