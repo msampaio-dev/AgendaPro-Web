@@ -48,8 +48,27 @@ export function listarEquipeBarbearia(id: number, token: string) {
 	return apiRequest<Profissional[]>(`/profissionais?barbeariaId=${id}`, { headers: headers(token) })
 }
 
-export function listarServicosDisponiveis(token: string) {
-	return apiRequest<Servico[]>('/servicos', { headers: headers(token) })
+export type DadosServicoBarbearia = {
+	nome: string
+	descricao: string | null
+	duracaoMinutos: number
+	preco: number
+}
+
+// O catalogo pertence a barbearia: cada unidade so enxerga e edita os proprios
+// servicos.
+export function listarServicosDisponiveis(barbeariaId: number, token: string) {
+	return apiRequest<Servico[]>(`/servicos?barbeariaId=${barbeariaId}`, { headers: headers(token) })
+}
+
+export function criarServicoBarbearia(barbeariaId: number, dados: DadosServicoBarbearia, token: string) {
+	return apiRequest<Servico>('/servicos', {
+		method: 'POST', headers: headers(token), body: JSON.stringify({ ...dados, barbeariaId }),
+	})
+}
+
+export function desativarServicoBarbearia(servicoId: number, token: string) {
+	return apiRequest<void>(`/servicos/${servicoId}`, { method: 'DELETE', headers: headers(token) })
 }
 
 export function listarServicosProfissional(profissionalId: number, token: string) {

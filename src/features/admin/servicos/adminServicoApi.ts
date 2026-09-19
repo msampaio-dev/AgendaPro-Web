@@ -8,6 +8,10 @@ export type DadosServico = {
   preco: number
 }
 
+// Na criacao o servico precisa nascer dentro de uma barbearia; na edicao a dona
+// ja esta definida e nao muda.
+export type DadosNovoServico = DadosServico & { barbeariaId: number }
+
 function autorizacao(token: string) {
   return { Authorization: `Bearer ${token}` }
 }
@@ -16,7 +20,7 @@ export function listarServicosAdmin(token: string) {
   return apiRequest<Servico[]>('/servicos', { headers: autorizacao(token) })
 }
 
-export function cadastrarServico(dados: DadosServico, token: string) {
+export function cadastrarServico(dados: DadosNovoServico, token: string) {
   return apiRequest<Servico>('/servicos', {
     method: 'POST',
     headers: autorizacao(token),

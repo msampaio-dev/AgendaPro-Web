@@ -5,6 +5,7 @@ export type Servico = {
   duracaoMinutos: number
   preco: number
   ativo: boolean
+  barbeariaId: number
 }
 
 export type Profissional = {
