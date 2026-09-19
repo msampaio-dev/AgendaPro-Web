@@ -12,7 +12,9 @@ export type Profissional = {
   id: number
   usuarioId: number
   nome: string
-  email: string
+  // A API só devolve o e-mail a quem administra a unidade: para o resto da
+  // equipe ele vem nulo.
+  email: string | null
   barbeariaId: number | null
   barbeariaNome: string | null
   ativo: boolean
