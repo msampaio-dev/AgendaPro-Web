@@ -7,6 +7,7 @@ import {
   listarAgendaDoProfissional,
   type FiltrosAgendaProfissional,
 } from '../../agendamentos/agendamentoApi'
+import { nomeCompletoServicos } from '../../agendamentos/agendamentoFormatters'
 import type { Agendamento, Pagina, StatusAgendamento } from '../../agendamentos/types'
 import { useAuth } from '../../auth/context/useAuth'
 import styles from './AgendaProfissionalPage.module.css'
@@ -258,7 +259,7 @@ export function AgendaProfissionalPage() {
                   const podeConcluir = agendamento.status === 'CONFIRMADO' && fim <= agora
                   return <article className={`${styles.appointment} ${emAtendimento ? styles.current : ''}`} key={agendamento.id}>
                     <time dateTime={agendamento.inicio}><strong>{formatar(agendamento.inicio, { hour: '2-digit', minute: '2-digit' })}</strong><span>até {formatar(agendamento.fim, { hour: '2-digit', minute: '2-digit' })}</span></time>
-                    <div className={styles.customer}><span>Cliente</span><h3>{agendamento.clienteNome}</h3><p>{agendamento.servicoNome}{emAtendimento ? ' · em atendimento' : ''}</p></div>
+                    <div className={styles.customer}><span>Cliente</span><h3>{agendamento.clienteNome}</h3><p>{nomeCompletoServicos(agendamento)}{emAtendimento ? ' · em atendimento' : ''}</p></div>
                     <span className={`${styles.status} ${styles[agendamento.status.toLowerCase()]}`}>{nomesStatus[agendamento.status]}</span>
                     <div className={styles.actions}>
                       <button className={styles.detailsButton} onClick={() => setSelecionado(agendamento)} type="button">Detalhes</button>
@@ -284,7 +285,7 @@ export function AgendaProfissionalPage() {
           <header><div><p className={styles.eyebrow}>Atendimento #{selecionado.id}</p><h2 id="detalhes-atendimento">Detalhes da reserva</h2></div><button aria-label="Fechar detalhes" onClick={() => setSelecionado(null)} type="button">×</button></header>
           <dl>
             <div><dt>Cliente</dt><dd>{selecionado.clienteNome}</dd></div>
-            <div><dt>Serviço</dt><dd>{selecionado.servicoNome}</dd></div>
+            <div><dt>Serviço</dt><dd>{nomeCompletoServicos(selecionado)}</dd></div>
             <div><dt>Data</dt><dd>{formatar(selecionado.inicio, { dateStyle: 'full' })}</dd></div>
             <div><dt>Horário</dt><dd>{formatar(selecionado.inicio, { hour: '2-digit', minute: '2-digit' })}–{formatar(selecionado.fim, { hour: '2-digit', minute: '2-digit' })}</dd></div>
             <div><dt>Status</dt><dd>{nomesStatus[selecionado.status]}</dd></div>

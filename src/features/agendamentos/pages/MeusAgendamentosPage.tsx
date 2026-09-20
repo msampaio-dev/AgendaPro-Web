@@ -7,6 +7,7 @@ import {
   listarAgendamentosDoCliente,
   type FiltrosAgendamento,
 } from '../agendamentoApi'
+import { nomeCompletoServicos } from '../agendamentoFormatters'
 import type { Pagina, Agendamento, StatusAgendamento } from '../types'
 import styles from './MeusAgendamentosPage.module.css'
 
@@ -91,7 +92,7 @@ export function MeusAgendamentosPage() {
   async function cancelar(agendamento: Agendamento) {
     if (!token) return
     const confirmou = window.confirm(
-      `Deseja cancelar ${agendamento.servicoNome} em ${dataHora(agendamento.inicio)}?`,
+      `Deseja cancelar ${nomeCompletoServicos(agendamento)} em ${dataHora(agendamento.inicio)}?`,
     )
     if (!confirmou) return
 
@@ -139,7 +140,7 @@ export function MeusAgendamentosPage() {
             {resultado?.conteudo.map((agendamento) => (
               <article className={styles.appointment} key={agendamento.id}>
                 <div className={styles.date}><strong>{dataHora(agendamento.inicio)}</strong><span>até {new Intl.DateTimeFormat('pt-BR', { timeStyle: 'short' }).format(new Date(agendamento.fim))}</span></div>
-                <div className={styles.details}><span>Serviço</span><strong>{agendamento.servicoNome}</strong><p>com {agendamento.profissionalNome}</p></div>
+                <div className={styles.details}><span>Serviço</span><strong>{nomeCompletoServicos(agendamento)}</strong><p>com {agendamento.profissionalNome}</p></div>
                 <span className={`${styles.status} ${styles[agendamento.status.toLowerCase()]}`}>{nomesStatus[agendamento.status]}</span>
                 {(agendamento.status === 'AGENDADO' || agendamento.status === 'CONFIRMADO') && (
                   <button className={styles.cancelButton} disabled={cancelandoId === agendamento.id}
