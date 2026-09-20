@@ -1,0 +1,8 @@
+.page { min-height: 100vh; display: grid; place-items: center; padding: 40px 20px; background: var(--color-background); }
+.page > div { width: min(100%, 520px); border: 1px solid var(--color-border); padding: 40px; background: var(--color-surface); }
+.eyebrow { margin: 0; color: var(--color-accent-light); font-size: .67rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+.page h1 { margin: 10px 0 16px; font-family: var(--font-display); font-size: 2rem; line-height: 1.15; }
+.texto { margin: 0; color: var(--color-text-muted); font-size: .88rem; line-height: 1.6; }
+.acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+.acoes button, .acoes a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid var(--color-accent); border-radius: 3px; padding: 0 18px; color: #17110b; background: var(--color-accent); font-size: .8rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+.acoes a { color: var(--color-text); border-color: rgba(255,255,255,.18); background: transparent; }

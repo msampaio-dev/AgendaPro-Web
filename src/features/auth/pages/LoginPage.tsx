@@ -1,8 +1,14 @@
 import { type FormEvent, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../../../services/api'
+import { useEsperaLonga } from '../../../hooks/useEsperaLonga'
 import { useAuth } from '../context/useAuth'
 import styles from './AuthPage.module.css'
+
+// Conta de demonstração criada pela carga de dados da API. Existe para que
+// quem chega pelo portfólio veja o sistema por dentro sem precisar se
+// cadastrar; tem perfis de cliente e de profissional.
+const CONTA_DEMONSTRACAO = { email: 'joao.gabriel@demo.agendapro.local', senha: 'Demo123!' }
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -14,13 +20,14 @@ export function LoginPage() {
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  const servidorAcordando = useEsperaLonga(enviando)
+
+  async function acessar(credenciais: { email: string; senha: string }) {
     setErro('')
     setEnviando(true)
 
     try {
-      await entrar({ email: email.trim(), senha })
+      await entrar(credenciais)
       const retorno = (location.state as { retorno?: string } | null)?.retorno
       navigate(retorno || '/painel', { replace: true })
     } catch (error) {
@@ -28,6 +35,11 @@ export function LoginPage() {
     } finally {
       setEnviando(false)
     }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    return acessar({ email: email.trim(), senha })
   }
 
   return (
@@ -61,6 +73,23 @@ export function LoginPage() {
           </label>
 
           <button disabled={enviando} type="submit">{enviando ? 'Entrando...' : 'Entrar'}</button>
+
+          {servidorAcordando && <div className={styles.aviso} role="status">
+            O servidor hiberna quando fica sem uso, porque roda num plano gratuito.
+            Estamos acordando ele — a primeira entrada pode levar até um minuto.
+          </div>}
+
+          <div className={styles.demonstracao}>
+            <span>ou</span>
+            <button disabled={enviando} onClick={() => acessar(CONTA_DEMONSTRACAO)} type="button">
+              Acessar a demonstração
+            </button>
+            <small>
+              Conta de teste com perfis de cliente e profissional, em dados fictícios.
+              Explore sem se cadastrar.
+            </small>
+          </div>
+
           <p className={styles.switchPage}>Ainda não possui conta? <Link to="/cadastro">Criar conta</Link></p>
         </form>
       </section>
