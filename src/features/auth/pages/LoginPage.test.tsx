@@ -24,6 +24,21 @@ function renderizarLogin() {
 describe('LoginPage', () => {
   beforeEach(() => entrar.mockReset())
 
+  it('acessa a demonstração sem pedir cadastro', async () => {
+    // Quem chega pelo portfólio precisa ver o sistema por dentro em um clique.
+    entrar.mockResolvedValue(undefined)
+    const usuario = userEvent.setup()
+    renderizarLogin()
+
+    await usuario.click(screen.getByRole('button', { name: 'Acessar a demonstração' }))
+
+    expect(entrar).toHaveBeenCalledWith({
+      email: 'joao.gabriel@demo.agendapro.local',
+      senha: 'Demo123!',
+    })
+    expect(await screen.findByRole('heading', { name: 'Painel autenticado' })).toBeVisible()
+  })
+
   it('normaliza o e-mail, autentica e abre o painel', async () => {
     entrar.mockResolvedValue(undefined)
     const usuario = userEvent.setup()

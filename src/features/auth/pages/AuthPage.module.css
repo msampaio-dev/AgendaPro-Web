@@ -134,3 +134,42 @@
   .intro small { display: none; }
   .formSide { padding-block: 54px 70px; }
 }
+
+.aviso {
+  margin-top: 16px;
+  padding: 13px 15px;
+  border-left: 3px solid var(--color-accent);
+  color: #e8d6bd;
+  background: rgba(201, 148, 85, 0.08);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.demonstracao {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.demonstracao > span {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.demonstracao button {
+  margin-top: 0;
+  color: var(--color-text);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: transparent;
+}
+
+.demonstracao small {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}

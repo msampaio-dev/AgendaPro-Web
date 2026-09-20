@@ -18,6 +18,9 @@ export function AdminBarbeariaDetalhePage() {
 
 	useEffect(() => {
 		if (!token || !Number.isInteger(barbeariaId)) {
+			// Sem token ou com id invalido nao ha o que buscar: encerra o
+			// carregamento em vez de deixar a tela presa em "Carregando".
+			// oxlint-disable-next-line react/set-state-in-effect
 			setCarregando(false)
 			return
 		}
