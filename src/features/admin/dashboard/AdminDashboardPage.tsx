@@ -6,6 +6,7 @@ import {
   concluirAgendamento,
   confirmarAgendamento,
 } from '../../agendamentos/agendamentoApi'
+import { nomeCompletoServicos } from '../../agendamentos/agendamentoFormatters'
 import type { Agendamento, Pagina, Profissional, Servico, StatusAgendamento } from '../../agendamentos/types'
 import type { UsuarioResponse } from '../../auth/types'
 import { useAuth } from '../../auth/context/useAuth'
@@ -183,7 +184,7 @@ export function AdminDashboardPage() {
                 return (
                   <article key={agendamento.id}>
                     <time dateTime={agendamento.inicio}><strong>{formatarHora(agendamento.inicio)}</strong><span>{formatarData(agendamento.inicio)}</span></time>
-                    <div className={styles.appointment}><span className={`${styles.badge} ${styles[agendamento.status.toLowerCase()]}`}>{rotuloStatus(agendamento.status)}</span><h3>{agendamento.clienteNome}</h3><p>{agendamento.servicoNome} com {agendamento.profissionalNome}</p></div>
+                    <div className={styles.appointment}><span className={`${styles.badge} ${styles[agendamento.status.toLowerCase()]}`}>{rotuloStatus(agendamento.status)}</span><h3>{agendamento.clienteNome}</h3><p>{nomeCompletoServicos(agendamento)} com {agendamento.profissionalNome}</p></div>
                     <div className={styles.actions}>
                       {agendamento.status === 'AGENDADO' && <button disabled={processandoId === agendamento.id} onClick={() => alterarStatus(agendamento, 'confirmar')} type="button">Confirmar</button>}
                       {(agendamento.status === 'AGENDADO' || agendamento.status === 'CONFIRMADO') && <button className={styles.danger} disabled={processandoId === agendamento.id} onClick={() => alterarStatus(agendamento, 'cancelar')} type="button">Cancelar</button>}
