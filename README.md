@@ -7,16 +7,15 @@
 
 ![Demonstração do agendamento: escolha da barbearia, do profissional, do serviço com barba e do horário, até a confirmação](docs/screenshots/agendamento.gif)
 
-Interface web do **AgendaPro**, uma plataforma de agendamento para barbearias criada para transformar regras de backend em uma experiência clara para clientes, profissionais, proprietários e administradores.
+Interface web do AgendaPro, uma plataforma de agendamento para barbearias usada por clientes, profissionais, proprietários e administradores.
 
-É uma SPA completa, integrada a uma API publicada, com autenticação, rotas protegidas, disponibilidade calculada, gestão de equipe, agenda profissional e painel administrativo.
+É uma SPA integrada a uma API publicada, com autenticação, rotas protegidas, disponibilidade calculada, gestão de equipe, agenda profissional e painel administrativo.
 
-> **Demonstração online:** [agenda-pro-web-agendapro2.vercel.app](https://agenda-pro-web-agendapro2.vercel.app/)
-> **Backend Java/Spring Boot:** [msampaio-dev/AgendaPro](https://github.com/msampaio-dev/AgendaPro)
+> Teste o produto em [agenda-pro-web-agendapro2.vercel.app](https://agenda-pro-web-agendapro2.vercel.app/). O backend, em Java e Spring Boot, está em [msampaio-dev/AgendaPro](https://github.com/msampaio-dev/AgendaPro).
 
 ## Teste como um usuário real
 
-Na tela de login, use a opção de **conta demonstrativa** para conhecer o produto sem precisar preparar dados manualmente.
+Na tela de login, clique em **Acessar a demonstração** para entrar com uma conta de teste, sem cadastro e sem preparar dados.
 
 Um bom roteiro para avaliar o projeto:
 
@@ -63,31 +62,31 @@ Os dados do ambiente demonstrativo são fictícios e compartilhados. A API utili
 
 ## Telas
 
-**Cliente:** acompanha as próprias reservas, filtra por período e status e cancela quando precisar.
+O cliente acompanha as próprias reservas, filtra por período e status e cancela quando precisar.
 
 ![Tela Meus agendamentos com filtros e uma reserva de corte degradê com barba](docs/screenshots/cliente-meus-agendamentos.png)
 
-**Profissional:** define a jornada da semana com intervalo de almoço e ajusta datas específicas com bloqueios ou horários extras.
+O profissional define a jornada da semana com intervalo de almoço e ajusta datas específicas com bloqueios ou horários extras.
 
 ![Tela de disponibilidade com os horários semanais e a área de exceções e bloqueios](docs/screenshots/profissional-disponibilidade.png)
 
-**Proprietário:** administra o funcionamento da unidade, o catálogo com preços próprios, a equipe e os convites.
+O proprietário administra o funcionamento da unidade, o catálogo com preços próprios, a equipe e os convites.
 
 ![Tela Minha barbearia com horários de funcionamento, catálogo de serviços, equipe e convite de profissional](docs/screenshots/profissional-minha-barbearia.png)
 
-**Administrador:** acompanha a plataforma inteira, com indicadores e a agenda do negócio para confirmar ou cancelar atendimentos.
+O administrador acompanha a plataforma inteira, com indicadores e a agenda do negócio para confirmar ou cancelar atendimentos.
 
 ![Visão geral administrativa com indicadores e a agenda do dia](docs/screenshots/admin-visao-geral.png)
 
 ## Escolhas de experiência
 
-- **Fluxo progressivo:** cada etapa do agendamento libera somente o que já pode ser escolhido.
-- **Datas úteis primeiro:** o cliente recebe sugestões com horários disponíveis, em vez de procurar dia por dia.
-- **Estado consistente:** trocar barbearia, profissional ou serviço limpa escolhas que deixaram de ser válidas.
-- **Fuso do profissional:** a data mínima e os horários são apresentados de acordo com a localidade do atendimento.
-- **Erros compreensíveis:** respostas da API são transformadas em mensagens úteis para a pessoa usuária.
-- **Funciona no celular:** os fluxos principais são testados em telas de desktop e de celular.
-- **Acesso por perfil:** as rotas e opções visíveis acompanham as permissões recebidas na sessão.
+- Cada etapa do agendamento só libera o que já pode ser escolhido.
+- O cliente já recebe as próximas datas com horário livre e não precisa procurar dia por dia.
+- Trocar barbearia, profissional ou serviço limpa as escolhas que deixaram de valer.
+- A data mínima e os horários seguem o fuso de quem atende.
+- Os erros da API chegam à tela como mensagens que a pessoa entende.
+- Os fluxos principais são testados em telas de computador e de celular.
+- As rotas e opções visíveis seguem as permissões da sessão.
 
 ## Stack
 
@@ -105,7 +104,7 @@ Os dados do ambiente demonstrativo são fictícios e compartilhados. A API utili
 
 ## Organização do código
 
-O frontend segue a mesma ideia do backend: organização por funcionalidade, mantendo páginas, tipos e acesso à API próximos do contexto em que são usados.
+Como no backend, o código é organizado por funcionalidade: páginas, tipos e chamadas à API ficam perto de onde são usados.
 
 ```text
 src
@@ -133,7 +132,7 @@ API da funcionalidade ──► cliente HTTP compartilhado
 AgendaPro API ──────────► regras de negócio + PostgreSQL
 ```
 
-O frontend não tenta reproduzir regras críticas do backend. Ele orienta o usuário e faz validações de experiência; disponibilidade, permissões e conflitos continuam sendo decididos pela API.
+Disponibilidade, permissões e conflitos são decididos pela API. O frontend orienta o usuário e faz só as validações que melhoram a experiência.
 
 ## Executando localmente
 
@@ -172,15 +171,14 @@ npm run test:all
 
 Na última verificação local, passaram:
 
-- **46 testes** de componentes, hooks, formatação e integração com o cliente HTTP;
-- **8 cenários E2E** com Playwright;
-- fluxos E2E em desktop e mobile;
+- 46 testes de componentes, hooks, formatação e integração com o cliente HTTP;
+- 8 cenários E2E com Playwright, em desktop e mobile;
 - lint com Oxlint;
 - checagem TypeScript e build de produção.
 
-Os testes de componentes usam Vitest, Testing Library e JSDOM. As respostas da API são controladas para validar cada estado da interface com rapidez e determinismo.
+Os testes de componentes usam Vitest, Testing Library e JSDOM. Eles controlam as respostas da API, então cada estado da interface é verificado rápido e sempre com o mesmo resultado.
 
-Os testes ponta a ponta executam login, agendamento, agenda profissional e administração em um navegador real. A API é interceptada nesses testes para não criar registros no ambiente publicado.
+Os testes ponta a ponta percorrem login, agendamento, agenda profissional e administração num navegador real. Neles o Playwright intercepta a API, para não criar registros no ambiente publicado.
 
 Comandos individuais:
 
@@ -195,7 +193,7 @@ O GitHub Actions executa lint, testes, Playwright e build em todo push e pull re
 
 ## Integração com o backend
 
-O endereço da API é lido de `VITE_API_URL` e utiliza `http://localhost:8080/api/v1` como padrão local.
+O endereço da API vem de `VITE_API_URL`, com `http://localhost:8080/api/v1` como padrão local.
 
 O cliente HTTP compartilhado é responsável por:
 
@@ -209,9 +207,7 @@ A sessão é mantida no `sessionStorage`: ela sobrevive à atualização da pág
 
 ## Deploy
 
-O frontend está publicado na **Vercel**. O backend Spring Boot é implantado separadamente e sua URL é configurada por variável de ambiente, mantendo o mesmo build reutilizável entre desenvolvimento e produção.
-
-**Aplicação:** [https://agenda-pro-web-agendapro2.vercel.app](https://agenda-pro-web-agendapro2.vercel.app/)
+O frontend está publicado na Vercel, em [https://agenda-pro-web-agendapro2.vercel.app](https://agenda-pro-web-agendapro2.vercel.app/). O backend Spring Boot é implantado à parte, e a URL dele vem de uma variável de ambiente, então o mesmo build serve para desenvolvimento e produção.
 
 ## O que este projeto demonstra
 
@@ -225,14 +221,14 @@ O frontend está publicado na **Vercel**. O backend Spring Boot é implantado se
 
 ## Limitações conhecidas
 
-- **Primeiro acesso lento.** A API hiberna no plano gratuito e pode levar até cerca de um minuto para responder. A tela avisa que o servidor está sendo acordado e preserva a sessão enquanto espera.
-- **Imagens pesadas.** As fotos chegam do backend no tamanho original, então a lista de barbearias pode baixar alguns megabytes no primeiro acesso; o cache do navegador cobre as visitas seguintes.
-- **Sem monitoramento de erros.** Há um limite de erro que evita tela branca, mas falhas não são reportadas a nenhum serviço externo.
-- **Ambiente demonstrativo compartilhado.** Os dados são fictícios e podem ser alterados por qualquer visitante.
+- A API hiberna no plano gratuito, e o primeiro acesso pode levar até cerca de um minuto. A tela avisa que o servidor está acordando e mantém a sessão enquanto espera.
+- As fotos chegam do backend no tamanho original, então a lista de barbearias pode baixar alguns megabytes no primeiro acesso. O cache do navegador cobre as visitas seguintes.
+- Não há monitoramento de erros. Um limite de erro evita a tela branca, mas as falhas não são enviadas a nenhum serviço externo.
+- O ambiente de demonstração é compartilhado. Os dados são fictícios e qualquer visitante pode alterá-los.
 
 ## Autor
 
-Desenvolvido por **Marcelo Sampaio** como projeto de portfólio full stack, com foco principal em backend Java e uma interface capaz de demonstrar o produto de ponta a ponta.
+Desenvolvido por Marcelo Sampaio como projeto de portfólio full stack, com foco principal em backend Java e uma interface capaz de demonstrar o produto de ponta a ponta.
 
 - GitHub: [@msampaio-dev](https://github.com/msampaio-dev)
 - Backend: [AgendaPro](https://github.com/msampaio-dev/AgendaPro)
