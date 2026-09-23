@@ -5,7 +5,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-![AgendaPro — agendamento para barbearias](./public/og-agendapro.png)
+![Demonstração do agendamento: escolha da barbearia, do profissional, do serviço com barba e do horário, até a confirmação](docs/screenshots/agendamento.gif)
 
 Interface web do **AgendaPro**, uma plataforma de agendamento para barbearias criada para transformar regras de backend em uma experiência clara para clientes, profissionais, proprietários e administradores.
 
@@ -60,6 +60,24 @@ Os dados do ambiente demonstrativo são fictícios e compartilhados. A API utili
 - gestão de profissionais e transferências entre unidades;
 - administração de barbearias;
 - filtros de agenda, paginação e mudança de status.
+
+## Telas
+
+**Cliente:** acompanha as próprias reservas, filtra por período e status e cancela quando precisar.
+
+![Tela Meus agendamentos com filtros e uma reserva de corte degradê com barba](docs/screenshots/cliente-meus-agendamentos.png)
+
+**Profissional:** define a jornada da semana com intervalo de almoço e ajusta datas específicas com bloqueios ou horários extras.
+
+![Tela de disponibilidade com os horários semanais e a área de exceções e bloqueios](docs/screenshots/profissional-disponibilidade.png)
+
+**Proprietário:** administra o funcionamento da unidade, o catálogo com preços próprios, a equipe e os convites.
+
+![Tela Minha barbearia com horários de funcionamento, catálogo de serviços, equipe e convite de profissional](docs/screenshots/profissional-minha-barbearia.png)
+
+**Administrador:** acompanha a plataforma inteira, com indicadores e a agenda do negócio para confirmar ou cancelar atendimentos.
+
+![Visão geral administrativa com indicadores e a agenda do dia](docs/screenshots/admin-visao-geral.png)
 
 ## Escolhas de experiência
 
