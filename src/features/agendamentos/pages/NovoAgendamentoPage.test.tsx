@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Disponibilidade, SituacaoDisponibilidade } from '../types'
+import type { Disponibilidade, SituacaoDisponibilidade, SugestaoAgendamento } from '../types'
 import { NovoAgendamentoPage } from './NovoAgendamentoPage'
 
 const api = vi.hoisted(() => ({
@@ -12,6 +12,7 @@ const api = vi.hoisted(() => ({
   consultarProximasDisponibilidades: vi.fn(),
   consultarDisponibilidade: vi.fn(),
   criarAgendamento: vi.fn(),
+  sugerirAgendamento: vi.fn(),
 }))
 
 vi.mock('../agendamentoApi', () => api)
@@ -59,6 +60,23 @@ const disponibilidade: Disponibilidade = {
     { inicio: '11:30:00', fim: '12:00:00' },
     { inicio: '13:00:00', fim: '13:30:00' },
   ],
+}
+
+const sugestao: SugestaoAgendamento = {
+  barbeariaId: 2,
+  barbeariaNome: 'Barbershopping Ipanema',
+  profissionalId: 4,
+  profissionalNome: 'Marcelo',
+  servicoId: 3,
+  servicoNome: 'Corte',
+  servicoAdicionalId: 6,
+  servicoAdicionalNome: 'Barba',
+  dataPedida: '2030-01-07',
+  data: '2030-01-07',
+  periodo: 'MANHA',
+  horarios: [{ inicio: '09:00:00', fim: '09:50:00' }],
+  observacao: '',
+  sugestoesRestantesHoje: 9,
 }
 
 function renderizarPagina() {
@@ -161,5 +179,44 @@ describe('NovoAgendamentoPage', () => {
 
     expect(api.consultarProximasDisponibilidades).toHaveBeenLastCalledWith(4, 3, expect.any(String), 'token-teste', 6)
     expect(api.criarAgendamento).toHaveBeenCalledWith(expect.objectContaining({ servicoId: 3, servicoAdicionalId: 6 }), 'token-teste')
+  })
+
+  it('leva a sugestão da IA para o formulário manual ao ajustar', async () => {
+    api.sugerirAgendamento.mockResolvedValue(sugestao)
+    renderizarPagina()
+    const usuario = userEvent.setup()
+    await screen.findByRole('button', { name: /Barbershopping Ipanema/ })
+
+    await usuario.type(screen.getByLabelText('Prefere descrever o que quer?'), 'corte e barba de manhã com o Marcelo')
+    await usuario.click(screen.getByRole('button', { name: 'Sugerir horário' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Ajustar' }))
+
+    expect(await screen.findByRole('checkbox', { name: /Adicionar barba/ })).toBeChecked()
+    expect(screen.getByRole('button', { name: /Ver equipe/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Marcelo/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Corte/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByDisplayValue('2030-01-07')).toBeVisible()
+    expect(api.consultarDisponibilidade).toHaveBeenCalledWith(4, 3, '2030-01-07', 'token-teste', 6)
+    expect(screen.getByRole('button', { name: '09:00' })).toBeVisible()
+  })
+
+  it('confirma direto pela sugestão da IA', async () => {
+    api.sugerirAgendamento.mockResolvedValue(sugestao)
+    api.criarAgendamento.mockResolvedValue({
+      id: 11, clienteId: 7, clienteNome: 'Cliente', profissionalId: 4, profissionalNome: 'Marcelo',
+      servicoId: 3, servicoNome: 'Corte', servicoAdicionalId: 6, servicoAdicionalNome: 'Barba',
+      inicio: '2030-01-07T12:00:00Z', fim: '2030-01-07T12:50:00Z', status: 'AGENDADO',
+    })
+    renderizarPagina()
+    const usuario = userEvent.setup()
+    await screen.findByRole('button', { name: /Barbershopping Ipanema/ })
+
+    await usuario.type(screen.getByLabelText('Prefere descrever o que quer?'), 'corte e barba de manhã')
+    await usuario.click(screen.getByRole('button', { name: 'Sugerir horário' }))
+    await usuario.click(await screen.findByRole('button', { name: '09:00' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar às 09:00' }))
+
+    expect(await screen.findByRole('heading', { name: 'Seu horário está agendado.' })).toBeVisible()
+    expect(screen.getByText('Corte + Barba com Marcelo na Barbershopping Ipanema')).toBeVisible()
   })
 })
