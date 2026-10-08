@@ -8,6 +8,7 @@ import type {
   Pagina,
   Servico,
   StatusAgendamento,
+  SugestaoAgendamento,
 } from './types'
 
 export function listarServicos(token: string) {
@@ -104,6 +105,14 @@ export function criarAgendamento(
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(dados),
+  })
+}
+
+export function sugerirAgendamento(texto: string, token: string) {
+  return apiRequest<SugestaoAgendamento>('/sugestoes-agendamento', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ texto }),
   })
 }
 

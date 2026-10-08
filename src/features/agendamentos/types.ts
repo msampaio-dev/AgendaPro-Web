@@ -119,3 +119,26 @@ export type Pagina<T> = {
   primeira: boolean
   ultima: boolean
 }
+
+export type PeriodoSugestao = 'MANHA' | 'TARDE' | 'NOITE' | 'QUALQUER'
+
+// Sugestão montada a partir de texto livre. Nada está reservado: confirmar
+// passa pelo mesmo POST /agendamentos do fluxo manual.
+export type SugestaoAgendamento = {
+  barbeariaId: number
+  barbeariaNome: string
+  profissionalId: number
+  profissionalNome: string
+  servicoId: number
+  servicoNome: string
+  servicoAdicionalId: number | null
+  servicoAdicionalNome: string | null
+  // O que o cliente pediu; `data` é onde há vaga. Diferem quando o dia pedido
+  // estava sem horário no período.
+  dataPedida: string | null
+  data: string
+  periodo: PeriodoSugestao
+  horarios: HorarioDisponivel[]
+  observacao: string
+  sugestoesRestantesHoje: number
+}
