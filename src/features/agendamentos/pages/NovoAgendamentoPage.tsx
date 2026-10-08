@@ -10,7 +10,8 @@ import {
   listarProfissionaisDaBarbearia,
   listarServicosDoProfissional,
 } from '../agendamentoApi'
-import type { Agendamento, Barbearia, Disponibilidade, HorarioDisponivel, Profissional, Servico, SituacaoDisponibilidade } from '../types'
+import { AssistenteAgendamento } from '../components/AssistenteAgendamento'
+import type { Agendamento, Barbearia, Disponibilidade, HorarioDisponivel, Profissional, Servico, SituacaoDisponibilidade, SugestaoAgendamento } from '../types'
 import styles from './NovoAgendamentoPage.module.css'
 
 function dataLocalAtual() {
@@ -137,6 +138,43 @@ export function NovoAgendamentoPage() {
     finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
+  // Leva a sugestão da IA para o formulário manual. Não reaproveita
+  // selecionarBarbearia/selecionarProfissional porque elas leem o estado da
+  // renderização anterior: chamadas em sequência usariam ids desatualizados.
+  async function aplicarSugestao(sugestao: SugestaoAgendamento) {
+    if (!token) return
+    limparAgenda()
+    const requisicao = requisicaoAtual.current
+    setBarbeariaId(sugestao.barbeariaId); setProfissionalId(sugestao.profissionalId); setServicoId(sugestao.servicoId); setAdicionarBarba(false)
+    setProfissionais([]); setServicos([]); setErro(''); setProcessando(true)
+    try {
+      const [equipe, catalogo] = await Promise.all([
+        listarProfissionaisDaBarbearia(sugestao.barbeariaId, token),
+        listarServicosDoProfissional(sugestao.profissionalId, token),
+      ])
+      if (requisicao !== requisicaoAtual.current) return
+      // O formulário manual só oferece barba como adicional; outro adicional
+      // sugerido fica de fora e o cliente escolhe de novo.
+      const barbaDaUnidade = catalogo.find((item) => item.nome.toLocaleLowerCase('pt-BR') === 'barba')
+      const comBarba = sugestao.servicoAdicionalId !== null && sugestao.servicoAdicionalId === barbaDaUnidade?.id
+      const adicionalId = comBarba ? sugestao.servicoAdicionalId : null
+      setProfissionais(equipe.filter((item) => item.ativo)); setServicos(catalogo); setAdicionarBarba(comBarba)
+      const atual = equipe.find((item) => item.id === sugestao.profissionalId)
+      const hoje = atual ? dataAtualNoFuso(atual.fusoHorario) : dataLocalAtual()
+      const [proximas, doDia] = await Promise.all([
+        consultarProximasDisponibilidades(sugestao.profissionalId, sugestao.servicoId, hoje, token, adicionalId),
+        consultarDisponibilidade(sugestao.profissionalId, sugestao.servicoId, sugestao.data, token, adicionalId),
+      ])
+      if (requisicao !== requisicaoAtual.current) return
+      setProximasDatas(proximas); setData(sugestao.data); setHorarios(doDia.horarios); setSituacao(doDia.situacao); setConsultaRealizada(true)
+    } catch (error) { if (requisicao === requisicaoAtual.current) setErro(mensagemErro(error, 'Não foi possível levar a sugestão para o formulário.')) }
+    finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
+  }
+
+  function concluirPelaSugestao(novoAgendamento: Agendamento, sugestao: SugestaoAgendamento) {
+    setBarbeariaId(sugestao.barbeariaId); setAgendamento(novoAgendamento)
+  }
+
   async function confirmar() {
     if (!token || !sessao || !profissionalId || !servicoId || !data || !horarioInicio) return
     setProcessando(true); setErro('')
@@ -145,10 +183,12 @@ export function NovoAgendamentoPage() {
     finally { setProcessando(false) }
   }
 
-  if (agendamento) return <main className={styles.successPage}><span className={styles.successMark}>✓</span><p className={styles.eyebrow}>Reserva confirmada</p><h1>Seu horário está agendado.</h1><p>{servico?.nome}{adicionarBarba ? ' + Barba' : ''} com {profissional?.nome} na {barbearia?.nome}</p><strong>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeStyle: 'short', timeZone: profissional?.fusoHorario }).format(new Date(agendamento.inicio))}</strong><div><Link to="/painel">Voltar ao painel</Link><Link to="/">Página inicial</Link></div></main>
+  if (agendamento) return <main className={styles.successPage}><span className={styles.successMark}>✓</span><p className={styles.eyebrow}>Reserva confirmada</p><h1>Seu horário está agendado.</h1><p>{agendamento.servicoNome}{agendamento.servicoAdicionalNome ? ` + ${agendamento.servicoAdicionalNome}` : ''} com {agendamento.profissionalNome} na {barbearia?.nome}</p><strong>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeStyle: 'short', timeZone: profissional?.fusoHorario ?? barbearia?.fusoHorario ?? undefined }).format(new Date(agendamento.inicio))}</strong><div><Link to="/painel">Voltar ao painel</Link><Link to="/">Página inicial</Link></div></main>
 
   return <div className={styles.page}><header className={styles.header}><Link to="/">AgendaPro</Link><Link to="/painel">Voltar ao painel</Link></header><main className={styles.content}>
     <p className={styles.eyebrow}>Novo agendamento</p><h1>Escolha onde e como cuidar do seu estilo.</h1><p className={styles.subtitle}>Os horários exibidos consideram todos os serviços escolhidos.</p>{erro && <div className={styles.error} role="alert">{erro}</div>}
+
+    {token && sessao && <AssistenteAgendamento clienteId={sessao.id} onAgendado={concluirPelaSugestao} onAjustar={aplicarSugestao} token={token} />}
 
     <Etapa numero="01" titulo="Barbearia" descricao="Em qual unidade você deseja ser atendido?">{carregando ? <p>Carregando barbearias...</p> : <div className={styles.cardGrid}>{barbearias.map((item) => <button aria-pressed={barbeariaId === item.id} className={barbeariaId === item.id ? styles.selectedCard : styles.card} key={item.id} onClick={() => selecionarBarbearia(item.id)} type="button"><span className={styles.avatar}>{item.fotoUrl ? <img alt="" src={apiAssetUrl(item.fotoUrl) ?? ''} /> : item.nome.charAt(0)}</span><strong>{item.nome}</strong><span>Ver equipe</span></button>)}</div>}</Etapa>
 
