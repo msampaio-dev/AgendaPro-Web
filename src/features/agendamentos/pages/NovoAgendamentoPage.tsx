@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/context/useAuth'
-import { ApiError, apiAssetUrl } from '../../../services/api'
+import { apiAssetUrl, mensagemDeErro } from '../../../services/api'
 import {
   consultarDisponibilidade,
   consultarProximasDisponibilidades,
@@ -65,7 +65,7 @@ export function NovoAgendamentoPage() {
     let ativo = true
     listarBarbearias(token)
       .then((dados) => { if (ativo) setBarbearias(dados.filter((item) => item.ativo)) })
-      .catch((error) => { if (ativo) setErro(mensagemErro(error, 'Não foi possível carregar as barbearias.')) })
+      .catch((error) => { if (ativo) setErro(mensagemDeErro(error, 'Não foi possível carregar as barbearias.')) })
       .finally(() => { if (ativo) setCarregando(false) })
     return () => { ativo = false }
   }, [token])
@@ -94,7 +94,7 @@ export function NovoAgendamentoPage() {
     try {
       const equipe = await listarProfissionaisDaBarbearia(id, token)
       if (requisicao === requisicaoAtual.current) setProfissionais(equipe.filter((item) => item.ativo))
-    } catch (error) { if (requisicao === requisicaoAtual.current) { setProfissionais([]); setErro(mensagemErro(error, 'Não foi possível carregar os profissionais.')) } }
+    } catch (error) { if (requisicao === requisicaoAtual.current) { setProfissionais([]); setErro(mensagemDeErro(error, 'Não foi possível carregar os profissionais.')) } }
     finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
@@ -105,7 +105,7 @@ export function NovoAgendamentoPage() {
     try {
       const catalogo = await listarServicosDoProfissional(id, token)
       if (requisicao === requisicaoAtual.current) setServicos(catalogo)
-    } catch (error) { if (requisicao === requisicaoAtual.current) { setServicos([]); setErro(mensagemErro(error, 'Não foi possível carregar os serviços.')) } }
+    } catch (error) { if (requisicao === requisicaoAtual.current) { setServicos([]); setErro(mensagemDeErro(error, 'Não foi possível carregar os serviços.')) } }
     finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
@@ -122,7 +122,7 @@ export function NovoAgendamentoPage() {
       if (requisicao !== requisicaoAtual.current) return
       setProximasDatas(resultado)
       if (resultado[0]) { setData(resultado[0].data); setHorarios(resultado[0].horarios); setSituacao(resultado[0].situacao); setConsultaRealizada(true) }
-    } catch (error) { if (requisicao === requisicaoAtual.current) setErro(mensagemErro(error, 'Não foi possível consultar as próximas datas.')) }
+    } catch (error) { if (requisicao === requisicaoAtual.current) setErro(mensagemDeErro(error, 'Não foi possível consultar as próximas datas.')) }
     finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
@@ -143,7 +143,7 @@ export function NovoAgendamentoPage() {
       const resposta = await consultarDisponibilidade(profissionalId, servicoId, novaData, token, servicoAdicionalId)
       if (requisicao !== requisicaoAtual.current) return
       setHorarios(resposta.horarios); setSituacao(resposta.situacao); setConsultaRealizada(true)
-    } catch (error) { if (requisicao === requisicaoAtual.current) setErro(mensagemErro(error, 'Não foi possível consultar os horários.')) }
+    } catch (error) { if (requisicao === requisicaoAtual.current) setErro(mensagemDeErro(error, 'Não foi possível consultar os horários.')) }
     finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
@@ -183,7 +183,7 @@ export function NovoAgendamentoPage() {
       ])
       if (requisicao !== requisicaoAtual.current) return
       setProximasDatas(proximas); setData(sugestao.data); setHorarios(doDia.horarios); setSituacao(doDia.situacao); setConsultaRealizada(true)
-    } catch (error) { if (requisicao === requisicaoAtual.current) setErro(mensagemErro(error, 'Não foi possível levar a sugestão para o formulário.')) }
+    } catch (error) { if (requisicao === requisicaoAtual.current) setErro(mensagemDeErro(error, 'Não foi possível levar a sugestão para o formulário.')) }
     finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
@@ -198,7 +198,7 @@ export function NovoAgendamentoPage() {
     if (!token || !sessao || !profissionalId || !servicoId || !data || !horarioInicio) return
     setProcessando(true); setErro('')
     try { setAgendamento(await criarAgendamento({ clienteId: sessao.id, profissionalId, servicoId, servicoAdicionalId, data, horarioInicio }, token)) }
-    catch (error) { setErro(mensagemErro(error, 'Não foi possível confirmar o agendamento.')) }
+    catch (error) { setErro(mensagemDeErro(error, 'Não foi possível confirmar o agendamento.')) }
     finally { setProcessando(false) }
   }
 
@@ -224,5 +224,3 @@ export function NovoAgendamentoPage() {
 function Etapa({ numero, titulo, descricao, children }: { numero: string; titulo: string; descricao: string; children: ReactNode }) {
   return <section className={styles.step}><div className={styles.stepTitle}><span>{numero}</span><div><h2>{titulo}</h2><p>{descricao}</p></div></div>{children}</section>
 }
-
-function mensagemErro(error: unknown, fallback: string) { return error instanceof ApiError ? error.message : fallback }
