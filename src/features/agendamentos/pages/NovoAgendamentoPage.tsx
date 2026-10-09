@@ -165,6 +165,13 @@ export function NovoAgendamentoPage() {
       // O formulário manual só oferece barba como adicional; outro adicional
       // sugerido fica de fora e o cliente escolhe de novo.
       const barbaDaUnidade = catalogo.find((item) => item.nome.toLocaleLowerCase('pt-BR') === 'barba')
+      if (barbaDaUnidade && sugestao.servicoId === barbaDaUnidade.id) {
+        // Aqui a barba só existe como adicional de um corte, então a escolha
+        // de serviço fica em aberto em vez de marcar algo que a tela não mostra.
+        setProfissionais(equipe.filter((item) => item.ativo)); setServicos(catalogo); setServicoId(null)
+        setErro('Na escolha manual, a barba entra como adicional de um corte. Escolha o corte e marque a barba.')
+        return
+      }
       const comBarba = sugestao.servicoAdicionalId !== null && sugestao.servicoAdicionalId === barbaDaUnidade?.id
       const adicionalId = comBarba ? sugestao.servicoAdicionalId : null
       setProfissionais(equipe.filter((item) => item.ativo)); setServicos(catalogo); setAdicionarBarba(comBarba)
