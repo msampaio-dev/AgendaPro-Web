@@ -200,6 +200,25 @@ describe('NovoAgendamentoPage', () => {
     expect(screen.getByRole('button', { name: '09:00' })).toBeVisible()
   })
 
+  it('deixa o serviço em aberto ao ajustar uma sugestão só de barba', async () => {
+    api.sugerirAgendamento.mockResolvedValue({
+      ...sugestao, servicoId: 6, servicoNome: 'Barba', servicoAdicionalId: null, servicoAdicionalNome: null,
+    })
+    renderizarPagina()
+    const usuario = userEvent.setup()
+    await screen.findByRole('button', { name: /Ver equipe/ })
+
+    await usuario.type(screen.getByLabelText('Prefere descrever o que quer?'), 'só a barba amanhã')
+    await usuario.click(screen.getByRole('button', { name: 'Sugerir horário' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Ajustar' }))
+
+    expect(await screen.findByText(/a barba entra como adicional de um corte/)).toBeVisible()
+    expect(screen.getByRole('button', { name: /Marcelo/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Corte/ })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByRole('checkbox', { name: /Adicionar barba/ })).not.toBeInTheDocument()
+    expect(api.consultarDisponibilidade).not.toHaveBeenCalled()
+  })
+
   it('ignora a equipe de outra barbearia que chega depois do Ajustar', async () => {
     const outraBarbearia = { id: 5, nome: 'Barbershop Morumbi', ativo: true }
     const deMorumbi = { ...profissional, id: 20, usuarioId: 30, nome: 'Henrique', barbeariaId: 5, barbeariaNome: 'Barbershop Morumbi' }
