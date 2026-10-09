@@ -29,7 +29,9 @@ export function AssistenteAgendamento({ token, clienteId, onAjustar, onAgendado 
 
   async function sugerir(event: FormEvent) {
     event.preventDefault()
-    if (!texto.trim() || carregando) return
+    // Durante a confirmação, uma nova sugestão apagaria o cartão que está sendo
+    // confirmado e gastaria cota à toa.
+    if (!texto.trim() || carregando || confirmando) return
     setCarregando(true); setErro(''); setSugestao(null); setHorarioInicio('')
     try { setSugestao(await sugerirAgendamento(texto.trim(), token)) }
     catch (error) { setErro(mensagemErro(error, 'Não foi possível montar uma sugestão agora.')) }
@@ -67,7 +69,7 @@ export function AssistenteAgendamento({ token, clienteId, onAjustar, onAgendado 
       <textarea id="assistente-texto" maxLength={LIMITE_TEXTO} onChange={(event) => setTexto(event.target.value)} placeholder="Ex.: corte e barba sexta à tarde com o João" rows={2} value={texto} />
       <div className={styles.rodape}>
         <small>A sugestão é feita por IA e pode errar. Nada é reservado antes da sua confirmação.</small>
-        <button disabled={!texto.trim() || carregando} type="submit">{carregando ? 'Procurando...' : 'Sugerir horário'}</button>
+        <button disabled={!texto.trim() || carregando || confirmando} type="submit">{carregando ? 'Procurando...' : 'Sugerir horário'}</button>
       </div>
     </form>
 

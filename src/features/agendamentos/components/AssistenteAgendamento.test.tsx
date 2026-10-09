@@ -150,6 +150,20 @@ describe('AssistenteAgendamento', () => {
     expect(onAgendado).not.toHaveBeenCalled()
   })
 
+  it('não deixa pedir outra sugestão enquanto confirma', async () => {
+    const { usuario } = renderizar()
+    api.sugerirAgendamento.mockResolvedValue(sugestao)
+    api.criarAgendamento.mockReturnValue(new Promise(() => {}))
+
+    await pedirSugestao(usuario)
+    await usuario.click(await screen.findByRole('button', { name: '13:00' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar às 13:00' }))
+
+    expect(await screen.findByRole('button', { name: 'Confirmando...' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Sugerir horário' })).toBeDisabled()
+    expect(api.sugerirAgendamento).toHaveBeenCalledTimes(1)
+  })
+
   it('não envia texto vazio', () => {
     renderizar()
 
