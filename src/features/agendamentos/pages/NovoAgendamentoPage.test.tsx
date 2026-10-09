@@ -200,6 +200,29 @@ describe('NovoAgendamentoPage', () => {
     expect(screen.getByRole('button', { name: '09:00' })).toBeVisible()
   })
 
+  it('mostra o horário no fuso do profissional da sugestão, não no escolhido antes à mão', async () => {
+    const deManaus = { ...profissional, id: 9, usuarioId: 19, nome: 'Paulo', fusoHorario: 'America/Manaus' }
+    api.listarProfissionaisDaBarbearia.mockResolvedValue([profissional, deManaus])
+    api.sugerirAgendamento.mockResolvedValue(sugestao)
+    api.criarAgendamento.mockResolvedValue({
+      id: 12, clienteId: 7, clienteNome: 'Cliente', profissionalId: 4, profissionalNome: 'Marcelo',
+      servicoId: 3, servicoNome: 'Corte', inicio: '2030-01-07T12:00:00Z', fim: '2030-01-07T12:30:00Z', status: 'AGENDADO',
+    })
+    renderizarPagina()
+    const usuario = userEvent.setup()
+    await usuario.click(await screen.findByRole('button', { name: /Ver equipe/ }))
+    await usuario.click(await screen.findByRole('button', { name: /Paulo/ }))
+
+    await usuario.type(screen.getByLabelText('Prefere descrever o que quer?'), 'corte de manhã com o Marcelo')
+    await usuario.click(screen.getByRole('button', { name: 'Sugerir horário' }))
+    await usuario.click(await screen.findByRole('button', { name: '09:00' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar às 09:00' }))
+
+    expect(await screen.findByRole('heading', { name: 'Seu horário está agendado.' })).toBeVisible()
+    // 12:00 UTC é 09:00 em São Paulo, fuso do Marcelo, e 08:00 em Manaus, fuso do Paulo.
+    expect(screen.getByText(/09:00/)).toBeVisible()
+  })
+
   it('confirma direto pela sugestão da IA', async () => {
     api.sugerirAgendamento.mockResolvedValue(sugestao)
     api.criarAgendamento.mockResolvedValue({

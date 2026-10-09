@@ -171,8 +171,11 @@ export function NovoAgendamentoPage() {
     finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
+  // A tela de sucesso tira barbearia e fuso do estado da página. Sem trocar o
+  // profissional também, ela usaria o fuso de quem foi escolhido antes no
+  // formulário manual, e o horário confirmado poderia aparecer errado.
   function concluirPelaSugestao(novoAgendamento: Agendamento, sugestao: SugestaoAgendamento) {
-    setBarbeariaId(sugestao.barbeariaId); setAgendamento(novoAgendamento)
+    setBarbeariaId(sugestao.barbeariaId); setProfissionalId(sugestao.profissionalId); setAgendamento(novoAgendamento)
   }
 
   async function confirmar() {
