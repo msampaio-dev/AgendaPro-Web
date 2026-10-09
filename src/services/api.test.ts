@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, apiRequest } from './api'
+import { ApiError, apiRequest, mensagemDeErro } from './api'
 
 describe('apiRequest', () => {
   afterEach(() => vi.unstubAllGlobals())
@@ -41,5 +41,15 @@ describe('apiRequest', () => {
       status: 0,
       message: 'Não foi possível conectar à API. Verifique se o backend está ligado.',
     })
+  })
+})
+
+describe('mensagemDeErro', () => {
+  it('usa a mensagem da API quando ela explicou o erro', () => {
+    expect(mensagemDeErro(new ApiError(422, 'Não identifiquei o serviço.'), 'Falhou.')).toBe('Não identifiquei o serviço.')
+  })
+
+  it('usa o texto genérico para qualquer outra falha', () => {
+    expect(mensagemDeErro(new TypeError('fetch failed'), 'Falhou.')).toBe('Falhou.')
   })
 })

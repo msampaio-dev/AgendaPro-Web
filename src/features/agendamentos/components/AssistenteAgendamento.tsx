@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react'
-import { ApiError } from '../../../services/api'
+import { mensagemDeErro } from '../../../services/api'
 import { criarAgendamento, sugerirAgendamento } from '../agendamentoApi'
 import type { Agendamento, SugestaoAgendamento } from '../types'
 import styles from './AssistenteAgendamento.module.css'
@@ -34,7 +34,7 @@ export function AssistenteAgendamento({ token, clienteId, onAjustar, onAgendado 
     if (!texto.trim() || carregando || confirmando) return
     setCarregando(true); setErro(''); setSugestao(null); setHorarioInicio('')
     try { setSugestao(await sugerirAgendamento(texto.trim(), token)) }
-    catch (error) { setErro(mensagemErro(error, 'Não foi possível montar uma sugestão agora.')) }
+    catch (error) { setErro(mensagemDeErro(error, 'Não foi possível montar uma sugestão agora.')) }
     finally { setCarregando(false) }
   }
 
@@ -51,7 +51,7 @@ export function AssistenteAgendamento({ token, clienteId, onAjustar, onAgendado 
         horarioInicio,
       }, token)
       onAgendado(agendamento, sugestao)
-    } catch (error) { setErro(mensagemErro(error, 'Não foi possível confirmar o agendamento.')) }
+    } catch (error) { setErro(mensagemDeErro(error, 'Não foi possível confirmar o agendamento.')) }
     finally { setConfirmando(false) }
   }
 
@@ -95,5 +95,3 @@ export function AssistenteAgendamento({ token, clienteId, onAjustar, onAgendado 
     </div>}
   </section>
 }
-
-function mensagemErro(error: unknown, fallback: string) { return error instanceof ApiError ? error.message : fallback }

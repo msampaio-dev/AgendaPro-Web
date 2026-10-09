@@ -54,6 +54,12 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
 	return body as T
 }
 
+// Mensagem para mostrar na tela: a da API quando ela explicou o erro, senão
+// o texto genérico de quem chamou.
+export function mensagemDeErro(error: unknown, fallback: string) {
+  return error instanceof ApiError ? error.message : fallback
+}
+
 export function apiAssetUrl(path: string | null | undefined) {
 	if (!path) return null
 	if (/^https?:\/\//i.test(path)) return path
