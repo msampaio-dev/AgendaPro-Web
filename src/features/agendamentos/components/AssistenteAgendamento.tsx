@@ -58,7 +58,8 @@ export function AssistenteAgendamento({ token, clienteId, onAjustar, onAgendado 
     setSugestao(null); setHorarioInicio('')
   }
 
-  const diaMudou = sugestao?.dataPedida != null && sugestao.dataPedida !== sugestao.data
+  // A data que o cliente pediu, só quando a sugestão precisou ir para outro dia.
+  const diaPedidoSemVaga = sugestao?.dataPedida && sugestao.dataPedida !== sugestao.data ? sugestao.dataPedida : null
 
   return <section aria-label="Sugestão por texto" className={styles.assistente}>
     <form onSubmit={sugerir}>
@@ -80,7 +81,7 @@ export function AssistenteAgendamento({ token, clienteId, onAjustar, onAgendado 
         <div><dt>Data</dt><dd>{formatarDiaPorExtenso(sugestao.data)}</dd></div>
       </dl>
       {sugestao.observacao && <p className={styles.nota}>{sugestao.observacao}</p>}
-      {diaMudou && sugestao.dataPedida && <p className={styles.nota}>Não havia horário livre em {formatarDiaPorExtenso(sugestao.dataPedida)} no período pedido. Esta é a data mais próxima com vaga.</p>}
+      {diaPedidoSemVaga && <p className={styles.nota}>Não havia horário livre em {formatarDiaPorExtenso(diaPedidoSemVaga)} no período pedido. Esta é a data mais próxima com vaga.</p>}
       {sugestao.horarios.length === 0
         ? <p className={styles.nota}>Não encontrei horário livre nos próximos dias. Use Ajustar para trocar a data ou o profissional.</p>
         : <div className={styles.horarios}>{sugestao.horarios.map((item) => <button aria-pressed={horarioInicio === item.inicio} key={item.inicio} onClick={() => setHorarioInicio(item.inicio)} type="button">{item.inicio.slice(0, 5)}</button>)}</div>}
