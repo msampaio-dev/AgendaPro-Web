@@ -1,0 +1,25 @@
+.assistente { display: grid; gap: 18px; margin-bottom: 12px; padding: 24px; border: 1px solid rgba(201, 148, 85, .35); background: rgba(201, 148, 85, .05); }
+.assistente form { display: grid; gap: 12px; }
+.assistente label { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; }
+.assistente textarea { width: 100%; padding: 14px; border: 1px solid rgba(255, 255, 255, .14); color: var(--color-text); background: var(--color-surface); font: inherit; resize: vertical; }
+.rodape { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.rodape small, .sugestao > small { color: var(--color-text-muted); font-size: .76rem; }
+.assistente button { min-height: 46px; padding: 0 22px; border: 1px solid var(--color-accent); color: #17110b; background: var(--color-accent); font-weight: 700; cursor: pointer; }
+.assistente button:disabled { opacity: .55; cursor: not-allowed; }
+.erro { padding: 14px 16px; border-left: 3px solid #d87c72; color: #f0bbb5; background: rgba(216, 124, 114, .08); }
+.erro p { margin: 0; }
+.erro p + p { margin-top: 4px; color: var(--color-text-muted); font-size: .84rem; }
+.sugestao { display: grid; gap: 16px; }
+.sugestao dl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin: 0; border: 1px solid var(--color-border); background: var(--color-border); }
+.sugestao dl div { display: grid; gap: 6px; padding: 16px; background: var(--color-surface); }
+.sugestao dt { color: var(--color-text-muted); font-size: .72rem; text-transform: uppercase; }
+.sugestao dd { margin: 0; font-size: .9rem; font-weight: 600; text-transform: none; }
+.sugestao dl div:last-child dd::first-letter { text-transform: uppercase; }
+.nota { margin: 0; color: var(--color-text-muted); font-size: .88rem; }
+.horarios { display: flex; flex-wrap: wrap; gap: 10px; }
+.horarios button { min-width: 80px; border-color: rgba(255, 255, 255, .13); color: var(--color-text); background: var(--color-surface); font-weight: 400; }
+.horarios button[aria-pressed='true'], .horarios button:hover { border-color: var(--color-accent); color: #17110b; background: var(--color-accent); }
+.acoes { display: flex; gap: 12px; }
+.assistente .secundario { color: var(--color-accent-light); background: transparent; }
+@media (max-width: 760px) { .sugestao dl { grid-template-columns: 1fr 1fr; } .rodape { align-items: stretch; flex-direction: column; } }
+@media (max-width: 500px) { .assistente { padding: 18px; } .sugestao dl { grid-template-columns: 1fr; } .acoes { flex-direction: column; } }

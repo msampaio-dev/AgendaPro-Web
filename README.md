@@ -20,7 +20,7 @@ Na tela de login, clique em **Acessar a demonstração** para entrar com uma con
 Um bom roteiro para avaliar o projeto:
 
 1. entre com a conta demonstrativa;
-2. escolha uma barbearia, um profissional e um serviço;
+2. escolha uma barbearia, um profissional e um serviço, ou escreva o pedido no campo **Prefere descrever o que quer?**;
 3. adicione barba, se quiser;
 4. consulte as próximas datas disponíveis;
 5. conclua uma reserva;
@@ -38,6 +38,7 @@ Os dados do ambiente demonstrativo são fictícios e compartilhados. A API utili
 - catálogo e preços específicos de cada unidade;
 - serviço principal com adicional de barba;
 - sugestão automática das próximas datas livres;
+- pedido em texto livre, interpretado por IA, com opção de confirmar ou ajustar;
 - escolha de outro dia pelo calendário;
 - histórico de reservas e cancelamento.
 
@@ -87,6 +88,12 @@ O administrador acompanha a plataforma inteira, com indicadores e a agenda do ne
 - Os erros da API chegam à tela como mensagens que a pessoa entende.
 - Os fluxos principais são testados em telas de computador e de celular.
 - As rotas e opções visíveis seguem as permissões da sessão.
+
+## Sugestão por IA
+
+No topo da tela de novo agendamento, o cliente pode escrever o pedido, como "corte e barba sexta à tarde com o João". A API interpreta o texto com o Claude e devolve barbearia, profissional, serviços, data e horários livres. O cliente confirma um horário ali mesmo ou toca em Ajustar, que leva a sugestão para o formulário manual, onde ele corrige o que quiser.
+
+A confirmação usa o mesmo endpoint da escolha manual, e nada fica reservado antes dela. O modelo pode entender o profissional ou o dia errado e mesmo assim gerar uma sugestão válida, então a tela mostra tudo o que foi entendido e avisa que a sugestão pode errar. Quando a IA não entende o pedido, está fora do ar ou o limite diário acabou, a tela mostra o motivo e o cliente segue pelo formulário logo abaixo. A validação e os limites estão descritos no [README do backend](https://github.com/msampaio-dev/AgendaPro#sugestão-de-agendamento-com-ia).
 
 ## Stack
 
@@ -171,7 +178,7 @@ npm run test:all
 
 Na última verificação local, passaram:
 
-- 46 testes de componentes, hooks, formatação e integração com o cliente HTTP;
+- 64 testes de componentes, hooks, formatação e integração com o cliente HTTP;
 - 8 cenários E2E com Playwright, em desktop e mobile;
 - lint com Oxlint;
 - checagem TypeScript e build de produção.
