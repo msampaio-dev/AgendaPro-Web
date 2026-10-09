@@ -178,7 +178,7 @@ npm run test:all
 
 Na última verificação local, passaram:
 
-- 57 testes de componentes, hooks, formatação e integração com o cliente HTTP;
+- 61 testes de componentes, hooks, formatação e integração com o cliente HTTP;
 - 8 cenários E2E com Playwright, em desktop e mobile;
 - lint com Oxlint;
 - checagem TypeScript e build de produção.
