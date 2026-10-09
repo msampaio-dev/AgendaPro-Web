@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -198,6 +198,30 @@ describe('NovoAgendamentoPage', () => {
     expect(screen.getByDisplayValue('2030-01-07')).toBeVisible()
     expect(api.consultarDisponibilidade).toHaveBeenCalledWith(4, 3, '2030-01-07', 'token-teste', 6)
     expect(screen.getByRole('button', { name: '09:00' })).toBeVisible()
+  })
+
+  it('ignora a equipe de outra barbearia que chega depois do Ajustar', async () => {
+    const outraBarbearia = { id: 5, nome: 'Barbershop Morumbi', ativo: true }
+    const deMorumbi = { ...profissional, id: 20, usuarioId: 30, nome: 'Henrique', barbeariaId: 5, barbeariaNome: 'Barbershop Morumbi' }
+    let entregarMorumbi: (equipe: typeof profissional[]) => void = () => {}
+    api.listarBarbearias.mockResolvedValue([barbearia, outraBarbearia])
+    api.listarProfissionaisDaBarbearia.mockImplementation((id: number) => id === 5
+      ? new Promise((resolver) => { entregarMorumbi = resolver })
+      : Promise.resolve([profissional]))
+    api.sugerirAgendamento.mockResolvedValue(sugestao)
+    renderizarPagina()
+    const usuario = userEvent.setup()
+
+    await usuario.click(await screen.findByRole('button', { name: /Barbershop Morumbi/ }))
+    await usuario.type(screen.getByLabelText('Prefere descrever o que quer?'), 'corte e barba com o Marcelo')
+    await usuario.click(screen.getByRole('button', { name: 'Sugerir horário' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Ajustar' }))
+    expect(await screen.findByRole('button', { name: /Marcelo/ })).toHaveAttribute('aria-pressed', 'true')
+
+    await act(async () => { entregarMorumbi([deMorumbi]) })
+
+    expect(screen.queryByRole('button', { name: /Henrique/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Marcelo/ })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('mostra o horário no fuso do profissional da sugestão, não no escolhido antes à mão', async () => {

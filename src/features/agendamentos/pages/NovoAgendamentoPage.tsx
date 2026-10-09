@@ -84,20 +84,29 @@ export function NovoAgendamentoPage() {
     requisicaoAtual.current += 1
   }
 
+  // As respostas só valem se nenhuma escolha mais nova (manual ou Ajustar da
+  // sugestão) começou enquanto esperavam; senão uma lista atrasada
+  // sobrescreveria a de outra barbearia ou profissional.
   async function selecionarBarbearia(id: number) {
     if (!token) return
     setBarbeariaId(id); setProfissionalId(null); setServicoId(null); setAdicionarBarba(false); setServicos([]); limparAgenda(); setErro(''); setProcessando(true)
-    try { setProfissionais((await listarProfissionaisDaBarbearia(id, token)).filter((item) => item.ativo)) }
-    catch (error) { setProfissionais([]); setErro(mensagemErro(error, 'Não foi possível carregar os profissionais.')) }
-    finally { setProcessando(false) }
+    const requisicao = requisicaoAtual.current
+    try {
+      const equipe = await listarProfissionaisDaBarbearia(id, token)
+      if (requisicao === requisicaoAtual.current) setProfissionais(equipe.filter((item) => item.ativo))
+    } catch (error) { if (requisicao === requisicaoAtual.current) { setProfissionais([]); setErro(mensagemErro(error, 'Não foi possível carregar os profissionais.')) } }
+    finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
   async function selecionarProfissional(id: number) {
     if (!token) return
     setProfissionalId(id); setServicoId(null); setAdicionarBarba(false); limparAgenda(); setErro(''); setProcessando(true)
-    try { setServicos(await listarServicosDoProfissional(id, token)) }
-    catch (error) { setServicos([]); setErro(mensagemErro(error, 'Não foi possível carregar os serviços.')) }
-    finally { setProcessando(false) }
+    const requisicao = requisicaoAtual.current
+    try {
+      const catalogo = await listarServicosDoProfissional(id, token)
+      if (requisicao === requisicaoAtual.current) setServicos(catalogo)
+    } catch (error) { if (requisicao === requisicaoAtual.current) { setServicos([]); setErro(mensagemErro(error, 'Não foi possível carregar os serviços.')) } }
+    finally { if (requisicao === requisicaoAtual.current) setProcessando(false) }
   }
 
   async function buscarProximasDatas(idServico: number, comBarba: boolean) {
