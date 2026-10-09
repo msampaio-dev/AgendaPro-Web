@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { mensagemDeErro } from '../../../services/api'
 import { criarAgendamento, sugerirAgendamento } from '../agendamentoApi'
+import { formatarDiaPorExtenso } from '../agendamentoFormatters'
 import type { Agendamento, SugestaoAgendamento } from '../types'
 import styles from './AssistenteAgendamento.module.css'
 
@@ -12,10 +13,6 @@ type Props = {
 }
 
 const LIMITE_TEXTO = 300
-
-function formatarData(data: string) {
-  return new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).format(new Date(`${data}T12:00:00`))
-}
 
 // A IA só preenche a sugestão. Confirmar usa o mesmo POST /agendamentos da
 // escolha manual, e qualquer erro aqui manda o cliente para o fluxo manual.
@@ -80,10 +77,10 @@ export function AssistenteAgendamento({ token, clienteId, onAjustar, onAgendado 
         <div><dt>Barbearia</dt><dd>{sugestao.barbeariaNome}</dd></div>
         <div><dt>Profissional</dt><dd>{sugestao.profissionalNome}</dd></div>
         <div><dt>Serviços</dt><dd>{sugestao.servicoNome}{sugestao.servicoAdicionalNome ? ` + ${sugestao.servicoAdicionalNome}` : ''}</dd></div>
-        <div><dt>Data</dt><dd>{formatarData(sugestao.data)}</dd></div>
+        <div><dt>Data</dt><dd>{formatarDiaPorExtenso(sugestao.data)}</dd></div>
       </dl>
       {sugestao.observacao && <p className={styles.nota}>{sugestao.observacao}</p>}
-      {diaMudou && sugestao.dataPedida && <p className={styles.nota}>Não havia horário livre em {formatarData(sugestao.dataPedida)} no período pedido. Esta é a data mais próxima com vaga.</p>}
+      {diaMudou && sugestao.dataPedida && <p className={styles.nota}>Não havia horário livre em {formatarDiaPorExtenso(sugestao.dataPedida)} no período pedido. Esta é a data mais próxima com vaga.</p>}
       {sugestao.horarios.length === 0
         ? <p className={styles.nota}>Não encontrei horário livre nos próximos dias. Use Ajustar para trocar a data ou o profissional.</p>
         : <div className={styles.horarios}>{sugestao.horarios.map((item) => <button aria-pressed={horarioInicio === item.inicio} key={item.inicio} onClick={() => setHorarioInicio(item.inicio)} type="button">{item.inicio.slice(0, 5)}</button>)}</div>}
